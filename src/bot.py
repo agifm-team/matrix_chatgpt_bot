@@ -26,6 +26,7 @@ from nio import (
     MegolmEvent,
     RoomMessageText,
     ToDeviceError,
+    WhoamiResponse,
 )
 from nio.store.database import SqliteStore
 from api import send_message_as_tool
@@ -50,6 +51,7 @@ class Bot:
         owner_id: str,
         password: Union[str, None] = None,
         device_id: str = "MatrixChatGPTBot",
+        room_id: Union[str, None] = None,
         import_keys_path: Optional[str] = None,
         import_keys_password: Optional[str] = None,
         timeout: Union[float, None] = None,
@@ -58,7 +60,7 @@ class Bot:
             logger.warning("homeserver && user_id && device_id is required")
             sys.exit(1)
 
-        if password is None:
+        if password is None and access_token is None:
             logger.warning("password is required")
             sys.exit(1)
 
@@ -66,6 +68,7 @@ class Bot:
         self.homeserver: str = homeserver
         self.user_id: str = user_id
         self.password: str = password
+        self.access_token: str = access_token
         self.device_id: str = device_id
         self.owner_id: str = owner_id
 
@@ -455,7 +458,7 @@ class Bot:
 
     # bot login
     async def login(self) -> None:
-        resp = await self.client.login(password=self.password, device_name=self.device_id)
+        resp = await self.client.login(password=self.password, device_name=DEVICE_NAME)
         if not isinstance(resp, LoginResponse):
             logger.error("Login Failed")
             await self.httpx_client.aclose()
@@ -471,9 +474,7 @@ class Bot:
         if isinstance(resp, EncryptionError):
             logger.error(f"import_keys failed with {resp}")
         else:
-            logger.info(
-                "import_keys success, please remove import_keys configuration!!!"
-            )
+            logger.info("import_keys success, you can remove import_keys configuration")
 
     # sync messages in the room
     async def sync_forever(self, timeout=30000, full_state=True) -> None:
