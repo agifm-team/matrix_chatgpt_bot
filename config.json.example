@@ -1,7 +1,0 @@
-{
-  "homeserver": "https://matrix-client.matrix.org",
-  "user_id": "@lullap:xxxxx.org",
-  "password": "xxxxxxxxxxxxxxxxxx",
-  "device_id": "MatrixChatGPTBot",
-  "openai_api_key": "xxxxxxxxxxxxxxxxxxxxxxxx"
-}

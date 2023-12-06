@@ -9,6 +9,7 @@ db
 bot.log
 venv
 .venv
+full-config.json.example
 *.yaml
 *.yml
 .git
@@ -21,3 +22,4 @@ settings.js
 .vscode
 Dockerfile_dev
 LICENSE
+project

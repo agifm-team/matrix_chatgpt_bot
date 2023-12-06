@@ -14,6 +14,7 @@ logger = getlogger()
 async def main():
     need_import_keys = False
     config_path = Path(os.path.dirname(__file__)).parent / "config.json"
+    print(config_path)
     if os.path.isfile(config_path):
         try:
             fp = open(config_path, encoding="utf8")
@@ -21,29 +22,19 @@ async def main():
         except Exception:
             logger.error("config.json load error, please check the file")
             sys.exit(1)
-
+        print(config.get("device_id"))
         matrix_bot = Bot(
             homeserver=config.get("homeserver"),
             user_id=config.get("user_id"),
             password=config.get("password"),
             device_id=config.get("device_id"),
-            room_id=config.get("room_id"),
             import_keys_path=config.get("import_keys_path"),
             import_keys_password=config.get("import_keys_password"),
-            openai_api_key=config.get("openai_api_key"),
-            gpt_api_endpoint=config.get("gpt_api_endpoint"),
-            gpt_model=config.get("gpt_model"),
-            max_tokens=config.get("max_tokens"),
-            top_p=config.get("top_p"),
-            presence_penalty=config.get("presence_penalty"),
-            frequency_penalty=config.get("frequency_penalty"),
-            reply_count=config.get("reply_count"),
-            system_prompt=config.get("system_prompt"),
-            temperature=config.get("temperature"),
-            lc_admin=config.get("lc_admin"),
-            image_generation_endpoint=config.get("image_generation_endpoint"),
-            image_generation_backend=config.get("image_generation_backend"),
             timeout=config.get("timeout"),
+            superagent_url=config.get("superagent_url"),
+            agent_id=config.get("agent_id"),
+            api_key=config.get("api_key"),
+            owner_id=config.get("owner_id")
         )
         if (
             config.get("import_keys_path")
@@ -57,23 +48,13 @@ async def main():
             user_id=os.environ.get("USER_ID"),
             password=os.environ.get("PASSWORD"),
             device_id=os.environ.get("DEVICE_ID"),
-            room_id=os.environ.get("ROOM_ID"),
             import_keys_path=os.environ.get("IMPORT_KEYS_PATH"),
             import_keys_password=os.environ.get("IMPORT_KEYS_PASSWORD"),
-            openai_api_key=os.environ.get("OPENAI_API_KEY"),
-            gpt_api_endpoint=os.environ.get("GPT_API_ENDPOINT"),
-            gpt_model=os.environ.get("GPT_MODEL"),
-            max_tokens=os.environ.get("MAX_TOKENS"),
-            top_p=os.environ.get("TOP_P"),
-            presence_penalty=os.environ.get("PRESENCE_PENALTY"),
-            frequency_penalty=os.environ.get("FREQUENCY_PENALTY"),
-            reply_count=os.environ.get("REPLY_COUNT"),
-            system_prompt=os.environ.get("SYSTEM_PROMPT"),
-            temperature=os.environ.get("TEMPERATURE"),
-            lc_admin=os.environ.get("LC_ADMIN"),
-            image_generation_endpoint=os.environ.get("IMAGE_GENERATION_ENDPOINT"),
-            image_generation_backend=os.environ.get("IMAGE_GENERATION_BACKEND"),
+            superagent_url=os.environ.get("SUPERAGENT_URL"),
+            agent_id=os.environ.get("AGENT_ID"),
+            api_key=os.environ.get("API_KEY"),
             timeout=os.environ.get("TIMEOUT"),
+            owner_id=os.environ.get("OWNER_ID")
         )
         if (
             os.environ.get("IMPORT_KEYS_PATH")
