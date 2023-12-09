@@ -1,8 +1,9 @@
+import json
 import httpx
 
 
 async def superagent_invoke(
-    api_url: str, prompt: str, api_key:str, session: httpx.AsyncClient, sessionId: str=None,headers: dict = None
+    superagent_url: str,agent_id: str, prompt: str, api_key:str, session: httpx.AsyncClient, sessionId: str=None,headers: dict = None
 ) -> str:
     """
     Sends a query to the Superagent API and returns the response.
@@ -20,16 +21,36 @@ async def superagent_invoke(
     headers = {
             'Authorization': f'Bearer {api_key}',
         }
-    if headers:
-        response = await session.post(
+    api_url = f"{superagent_url}/api/v1/agents/{agent_id}/invoke"
+    response = await session.post(
             api_url,
             json={"input": prompt, "sessionId": sessionId , "enableStreaming": False},
             headers=headers,
             timeout= 30,
         )
-    else:
-        response = await session.post(api_url, json={"input": prompt, "sessionId": sessionId , "streaming": False})
     return response.json()['data']['output'],response.json()['data']['intermediate_steps']
+
+async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient, room_id: str):
+    api_url = f"{superagent_url}/api/v1/agents/{agent_id}"
+    headers = {
+            'Authorization': f'Bearer {api_key}',
+        }
+    response = await session.get(
+            api_url,
+            headers=headers,
+            timeout= 30,
+    )
+    result = {}
+    if response.status_code == 200:
+        data = response.json()['data']['tools']
+        for tools in data:
+            if tools['tool']['type'] == "AGENT":
+                tool_agent_id = json.loads(tools['tool']['metadata'])
+                result[tools['tool']['name']] = tool_agent_id['agent_id']
+    return result
+
+
+
 
 
 async def test():
