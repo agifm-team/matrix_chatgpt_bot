@@ -4,9 +4,12 @@ import os
 from pathlib import Path
 import signal
 import sys
+from dotenv import load_dotenv
 
 from bot import Bot
 from log import getlogger
+
+load_dotenv()
 
 logger = getlogger()
 

@@ -5,6 +5,7 @@ import re
 import sys
 import traceback
 from typing import Union, Optional
+import urllib.parse
 
 import httpx
 
@@ -67,6 +68,7 @@ class Bot:
         self.password: str = password
         self.device_id: str = device_id
         self.owner_id: str = owner_id
+        self.bot_username = urllib.parse.quote(user_id)
 
         self.superagent_url = superagent_url
         self.agent_id = agent_id
@@ -131,21 +133,23 @@ class Bot:
         # sender_id
         sender_id = event.sender
 
+        thread_id = None
+
         # user_message
         raw_user_message = event.body
+        if reply_to_event_id:
+            if "event_id" in event.source["content"]["m.relates_to"]:
+                thread_id = event.source["content"]["m.relates_to"]["event_id"]
 
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
-
         # prevent command trigger loop
-        if self.user_id != event.sender:
+        if self.user_id != event.sender and self.bot_username in event.formatted_body:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
-            if "TERMINATE" in content_body or "NULL" in content_body:
-                return
             try:
                 result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,room_id)
                 if result[1] != []:
@@ -155,6 +159,14 @@ class Bot:
                             tool_name = i[0]['tool']
                             tool_input = i[0]['tool_input']['input']
                             tool_id = get_called_agents[tool_name]
+                            if thread_id:
+                                thread = {
+                                    'rel_type': 'm.thread', 
+                                    'event_id': thread_id, 
+                                    'is_falling_back': True, 
+                                    'm.in_reply_to': {'event_id': reply_to_event_id}
+                                }
+                                await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client,thread=thread)
                             await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client)
                 await send_room_message(
                 	self.client,
@@ -163,6 +175,8 @@ class Bot:
                 	sender_id=sender_id,
                 	user_message=raw_user_message,
                 	reply_to_event_id="",
+                    thread=reply_to_event_id,
+                    thread_id=thread_id
             	)
             except Exception as e:
                 print(e)

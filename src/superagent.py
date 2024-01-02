@@ -40,6 +40,7 @@ async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: ht
             headers=headers,
             timeout= 30,
     )
+    response.content
     result = {}
     if response.status_code == 200:
         data = response.json()['data']['tools']
@@ -53,12 +54,12 @@ async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: ht
 
 
 
-async def test():
+async def test(api_key):
     async with httpx.AsyncClient() as session:
-        api_url = "https://api.immagine.ai/api/v1/agents/98ab633b-c9c0-45ad-ab7e-881e8d9233a7/invoke"
+        api_url = "https://api.agispace.co/api/v1/agents/98ab633b-c9c0-45ad-ab7e-881e8d9233a7/invoke"
         prompt = "2+2"
         headers = {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfdXNlcl9pZCI6ImZkNDYwOTkzLWQ5MTgtNDE0OC05MzNkLTk2MjBlODQ2OTQ1YyJ9._wnmN64xsJb1k6ZbLnlBaQ4SmnJXit9OaEpQG4I_JyI',
+            'Authorization': f'Bearer {api_key}',
         }
         response = await superagent_invoke(api_url, prompt, session,headers=headers)
         print(response)
