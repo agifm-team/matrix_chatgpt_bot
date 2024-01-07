@@ -28,7 +28,10 @@ async def superagent_invoke(
             headers=headers,
             timeout= 30,
         )
-    return response.json()['data']['output'],response.json()['data']['intermediate_steps']
+    steps = []
+    if response.json()['data'].get('intermediate_steps') != None:
+        steps = response.json()['data']['intermediate_steps']
+    return response.json()['data']['output'], steps
 
 async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient, room_id: str):
     api_url = f"{superagent_url}/api/v1/agents/{agent_id}"

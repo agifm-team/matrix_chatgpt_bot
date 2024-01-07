@@ -134,13 +134,16 @@ class Bot:
         sender_id = event.sender
 
         thread_id = None
-
+        session_id = room_id
         # user_message
         raw_user_message = event.body
         if reply_to_event_id:
-            if "event_id" in event.source["content"]["m.relates_to"]:
-                thread_id = event.source["content"]["m.relates_to"]["event_id"]
-
+            try:
+                if "event_id" in event.source["content"]["m.relates_to"]:
+                    thread_id = event.source["content"]["m.relates_to"]["event_id"]
+                    session_id = thread_id
+            except Exception as e:
+                pass
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
@@ -151,7 +154,7 @@ class Bot:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
             try:
-                result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,room_id)
+                result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,session_id)
                 if result[1] != []:
                     get_called_agents = await get_agents(self.superagent_url,self.agent_id,self.api_key,self.httpx_client)
                     if get_called_agents != {}:
