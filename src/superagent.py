@@ -59,7 +59,7 @@ async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: ht
 
 async def test(api_key):
     async with httpx.AsyncClient() as session:
-        api_url = "https://api.agispace.co/api/v1/agents/98ab633b-c9c0-45ad-ab7e-881e8d9233a7/invoke"
+        api_url = "https://api.pixx.co/api/v1/agents/98ab633b-c9c0-45ad-ab7e-881e8d9233a7/invoke"
         prompt = "2+2"
         headers = {
             'Authorization': f'Bearer {api_key}',

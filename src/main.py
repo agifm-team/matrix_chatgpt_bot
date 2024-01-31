@@ -57,7 +57,8 @@ async def main():
             agent_id=os.environ.get("AGENT_ID"),
             api_key=os.environ.get("API_KEY"),
             timeout=os.environ.get("TIMEOUT"),
-            owner_id=os.environ.get("OWNER_ID")
+            owner_id=os.environ.get("OWNER_ID"),
+            workflow_id=os.environ.get("WORKFLOW_ID")
         )
         if (
             os.environ.get("IMPORT_KEYS_PATH")

@@ -33,6 +33,7 @@ from api import send_message_as_tool
 from log import getlogger
 from send_message import send_room_message
 from superagent import get_agents, superagent_invoke
+from workflow import workflow_invoke, workflow_steps
 
 logger = getlogger()
 GENERAL_ERROR_MESSAGE = "Something went wrong, please try again or contact admin."
@@ -48,6 +49,7 @@ class Bot:
         agent_id: str,
         api_key: str,
         owner_id: str,
+        workflow_id: str,
         password: Union[str, None] = None,
         device_id: str = "MatrixChatGPTBot",
         import_keys_path: Optional[str] = None,
@@ -62,6 +64,10 @@ class Bot:
             logger.warning("password is required")
             sys.exit(1)
 
+        self.workflow = False
+
+        if agent_id is None and workflow_id is not None:
+            self.workflow = True
 
         self.homeserver: str = homeserver
         self.user_id: str = user_id
@@ -154,6 +160,13 @@ class Bot:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
             try:
+                if self.workflow:
+                    result = await workflow_invoke(superagent_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id))
+                    get_steps = workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
+                    for i in get_steps:
+                        data = result[get_steps[i]["order"]]
+                        await send_message_as_tool(get_steps[i]["agentId"], data, room_id, self.httpx_client)
+                    return
                 result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,session_id)
                 if result[1] != []:
                     get_called_agents = await get_agents(self.superagent_url,self.agent_id,self.api_key,self.httpx_client)

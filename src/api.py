@@ -2,7 +2,7 @@ import httpx
 from mautrix.client import ClientAPI
 
 async def send_message_as_tool(tool_id,tool_input,room_id,session: httpx.AsyncClient,thread=None):
-    result = await session.get(f"https://bots.multi.so/agents/{tool_id}")
+    result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
     if result == []:
         return None
     msg = {
@@ -11,5 +11,5 @@ async def send_message_as_tool(tool_id,tool_input,room_id,session: httpx.AsyncCl
     }
     if thread:
         msg["m.relates_to"] = thread
-    client = ClientAPI(base_url="https://matrix.multi.so",token=result['access_token'])
+    client = ClientAPI(base_url="https://matrix.pixx.co",token=result['access_token'])
     await client.send_message(room_id, msg)
