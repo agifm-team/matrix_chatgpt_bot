@@ -53,6 +53,24 @@ async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: ht
                 result[tools['tool']['name']] = tool_agent_id['agent_id']
     return result
 
+async def get_tools(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient):
+    api_url = f"{superagent_url}/api/v1/agents/{agent_id}"
+    headers = {
+            'Authorization': f'Bearer {api_key}',
+        }
+    response = await session.get(
+            api_url,
+            headers=headers,
+            timeout= 30,
+    )
+    response.content
+    result = []
+    if response.status_code == 200:
+        data = response.json()['data']['tools']
+        for tools in data:
+            if tools['tool']['type'] == "AGENT":
+                result.append(tools['agentId'])
+    return result
 
 
 

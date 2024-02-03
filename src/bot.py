@@ -28,11 +28,11 @@ from nio import (
     ToDeviceError,
 )
 from nio.store.database import SqliteStore
-from api import send_message_as_tool
+from api import invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
 from send_message import send_room_message
-from superagent import get_agents, superagent_invoke
+from superagent import get_agents, get_tools, superagent_invoke
 from workflow import workflow_invoke, workflow_steps
 
 logger = getlogger()
@@ -183,14 +183,14 @@ class Bot:
                                     'm.in_reply_to': {'event_id': reply_to_event_id}
                                 }
                                 await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client,thread=thread)
-                            await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client)
+                            await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client, reply_to_event_id)
                 await send_room_message(
                 	self.client,
                 	room_id,
                 	reply_message=result[0],
                 	sender_id=sender_id,
                 	user_message=raw_user_message,
-                	reply_to_event_id="",
+                	reply_to_event_id=reply_to_event_id,
                     thread=reply_to_event_id,
                     thread_id=thread_id
             	)
@@ -219,6 +219,17 @@ class Bot:
         # Attempt to join 3 times before giving up
         for attempt in range(3):
             result = await self.client.join(room.room_id)
+            if self.workflow:
+                get_steps = workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
+                for i in get_steps:
+                    bot_username = await invite_bot_to_room(get_steps[i]["agentId"], self.httpx_client)
+                    await self.client.room_invite(room.room_id, bot_username)
+            else:
+                get_tools_agent_id = get_tools(self.superagent_url, self.agent_id ,self.api_key, self.httpx_client)
+                if get_tools_agent_id != []:
+                    for i in get_tools_agent_id:
+                        bot_username = await invite_bot_to_room(i, self.httpx_client)
+                        await self.client.room_invite(room.room_id, bot_username)
             if type(result) == JoinError:
                 logger.error(
                     f"Error joining room {room.room_id} (attempt %d): %s",
