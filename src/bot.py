@@ -162,7 +162,7 @@ class Bot:
             try:
                 if self.workflow:
                     result = await workflow_invoke(superagent_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id))
-                    get_steps = workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
+                    get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
                     for i in get_steps:
                         data = result[get_steps[i]["order"]]
                         await send_message_as_tool(get_steps[i]["agentId"], data, room_id, self.httpx_client)
@@ -220,7 +220,7 @@ class Bot:
         for attempt in range(3):
             result = await self.client.join(room.room_id)
             if self.workflow:
-                get_steps = workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
+                get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
                 for i in get_steps:
                     bot_username = await invite_bot_to_room(get_steps[i]["agentId"], self.httpx_client)
                     await self.client.room_invite(room.room_id, bot_username)
