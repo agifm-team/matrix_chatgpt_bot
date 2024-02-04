@@ -33,7 +33,7 @@ async def superagent_invoke(
         steps = response.json()['data']['intermediate_steps']
     return response.json()['data']['output'], steps
 
-async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient, room_id: str):
+async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient):
     api_url = f"{superagent_url}/api/v1/agents/{agent_id}"
     headers = {
             'Authorization': f'Bearer {api_key}',
@@ -50,7 +50,7 @@ async def get_agents(superagent_url: str,agent_id: str,api_key: str, session: ht
         for tools in data:
             if tools['tool']['type'] == "AGENT":
                 tool_agent_id = json.loads(tools['tool']['metadata'])
-                result[tools['tool']['name']] = tool_agent_id['agent_id']
+                result[tools['tool']['name']] = tool_agent_id['agentId']
     return result
 
 async def get_tools(superagent_url: str,agent_id: str,api_key: str, session: httpx.AsyncClient):

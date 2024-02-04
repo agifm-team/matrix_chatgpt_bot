@@ -231,7 +231,7 @@ class Bot:
                     bot_username = await invite_bot_to_room(i["agentId"], self.httpx_client)
                     await self.client.room_invite(room.room_id, bot_username)
             else:
-                get_tools_agent_id = get_tools(self.superagent_url, self.agent_id ,self.api_key, self.httpx_client)
+                get_tools_agent_id = await get_tools(self.superagent_url, self.agent_id ,self.api_key, self.httpx_client)
                 if get_tools_agent_id != []:
                     for i in get_tools_agent_id:
                         bot_username = await invite_bot_to_room(i, self.httpx_client)

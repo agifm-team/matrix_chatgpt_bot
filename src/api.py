@@ -24,4 +24,4 @@ async def invite_bot_to_room(tool_id, session):
     result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
     if not result.json():
         return None
-    return result["bot_username"]
+    return result.json()["bot_username"]
