@@ -8,4 +8,3 @@ tenacity
 python-magic
 mautrix
 urllib3
-dotenv
