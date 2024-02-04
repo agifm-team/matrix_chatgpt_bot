@@ -68,6 +68,7 @@ class Bot:
 
         if agent_id is None and workflow_id is not None:
             self.workflow = True
+            self.workflow_id = workflow_id
 
         self.homeserver: str = homeserver
         self.user_id: str = user_id
@@ -156,16 +157,21 @@ class Bot:
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
         # prevent command trigger loop
-        if self.user_id != event.sender and self.bot_username in event.formatted_body:
+        if event.formatted_body:
+            if self.bot_username in event.formatted_body:
+                tagged = True
+            else:
+                tagged = False
+        if self.user_id != event.sender and tagged:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
             try:
                 if self.workflow:
-                    result = await workflow_invoke(superagent_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id))
+                    result = await workflow_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id)
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
                     for i in get_steps:
-                        data = result[get_steps[i]["order"]]
-                        await send_message_as_tool(get_steps[i]["agentId"], data, room_id, self.httpx_client)
+                        data = result[str(i["order"])]
+                        await send_message_as_tool(i["agentId"], data, room_id, reply_to_event_id,self.httpx_client)
                     return
                 result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,session_id)
                 if result[1] != []:
@@ -182,8 +188,8 @@ class Bot:
                                     'is_falling_back': True, 
                                     'm.in_reply_to': {'event_id': reply_to_event_id}
                                 }
-                                await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client,thread=thread)
-                            await send_message_as_tool(tool_id,tool_input,room_id,self.httpx_client, reply_to_event_id)
+                                await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client,thread=thread)
+                            await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client, reply_to_event_id)
                 await send_room_message(
                 	self.client,
                 	room_id,
@@ -222,7 +228,7 @@ class Bot:
             if self.workflow:
                 get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
                 for i in get_steps:
-                    bot_username = await invite_bot_to_room(get_steps[i]["agentId"], self.httpx_client)
+                    bot_username = await invite_bot_to_room(i["agentId"], self.httpx_client)
                     await self.client.room_invite(room.room_id, bot_username)
             else:
                 get_tools_agent_id = get_tools(self.superagent_url, self.agent_id ,self.api_key, self.httpx_client)

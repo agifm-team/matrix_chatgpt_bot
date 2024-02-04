@@ -30,8 +30,8 @@ async def workflow_invoke(
     result = {}
     if response.status_code == 200:
         data  = response.json()
-        for i in data:
-            result[i] = data[i]['output']
+        for i in data['steps']:
+            result[i] = data['steps'][i]['output']
         return result
     return {}
 

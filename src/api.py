@@ -2,7 +2,7 @@ import httpx
 from mautrix.client import ClientAPI
 
 
-async def send_message_as_tool(tool_id, tool_input, room_id, event_id,session: httpx.AsyncClient, thread=None):
+async def send_message_as_tool(tool_id, tool_input, room_id, event_id, session: httpx.AsyncClient, thread=None):
     result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
     if result == []:
         return None
