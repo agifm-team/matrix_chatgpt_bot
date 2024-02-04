@@ -6,3 +6,5 @@ Pillow
 tiktoken
 tenacity
 python-magic
+mautrix
+urllib3

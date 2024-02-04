@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from bot import Bot
 from log import getlogger
 
-load_dotenv()
+#load_dotenv()
 
 logger = getlogger()
 
