@@ -156,12 +156,12 @@ class Bot:
             f"Message received in room {room.display_name}\n"
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
+        tagged = False
         # prevent command trigger loop
         if event.formatted_body:
             if self.bot_username in event.formatted_body:
                 tagged = True
-            else:
-                tagged = False
+                
         if self.user_id != event.sender and tagged:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
