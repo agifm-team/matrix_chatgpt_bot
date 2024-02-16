@@ -144,13 +144,13 @@ class Bot:
         session_id = room_id
         # user_message
         raw_user_message = event.body
-        if reply_to_event_id:
-            try:
-                if "event_id" in event.source["content"]["m.relates_to"]:
-                    thread_id = event.source["content"]["m.relates_to"]["event_id"]
-                    session_id = thread_id
-            except Exception as e:
-                pass
+
+        body= event.source
+
+        if "m.relates_to" in body["content"]:
+             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
+                thread_id = body["content"]["m.relates_to"]["event_id"]
+                session_id = thread_id
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
