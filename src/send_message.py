@@ -12,7 +12,6 @@ async def send_room_message(
     sender_id: str = "",
     user_message: str = "",
     reply_to_event_id: str = "",
-    thread = None,
     thread_id = None,
 ) -> None:
     if reply_to_event_id == "":
@@ -53,12 +52,12 @@ async def send_room_message(
             "formatted_body": formatted_body,
             "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
         }
-    if thread is not None:
+    if thread_id is not None:
         content["m.relates_to"] = {
             'rel_type': 'm.thread', 
             'event_id': thread_id, 
             'is_falling_back': True, 
-            'm.in_reply_to': {'event_id': thread}
+            'm.in_reply_to': {'event_id': reply_to_event_id}
         }
     try:
         await client.room_send(
