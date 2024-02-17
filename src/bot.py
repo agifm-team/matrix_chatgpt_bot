@@ -76,7 +76,7 @@ class Bot:
         self.device_id: str = device_id
         self.owner_id: str = owner_id
         self.bot_username = urllib.parse.quote(user_id)
-        self.bot_username_without_homeserver = self.user_id.replace(":pixx.co")
+        self.bot_username_without_homeserver = self.user_id.replace(":pixx.co", '')
 
         self.superagent_url = superagent_url
         self.agent_id = agent_id
