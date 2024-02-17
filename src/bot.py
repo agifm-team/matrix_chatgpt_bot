@@ -76,6 +76,7 @@ class Bot:
         self.device_id: str = device_id
         self.owner_id: str = owner_id
         self.bot_username = urllib.parse.quote(user_id)
+        self.bot_username_without_homeserver = self.user_id.replace(":pixx.co")
 
         self.superagent_url = superagent_url
         self.agent_id = agent_id
@@ -165,6 +166,7 @@ class Bot:
         if self.user_id != event.sender and tagged:
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
+            content_body = content_body.replace(self.bot_username_without_homeserver, '')
             try:
                 if self.workflow:
                     result = await workflow_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id)
@@ -190,14 +192,16 @@ class Bot:
                             tool_input = i[0]['tool_input']['input']
                             tool_id = get_called_agents[tool_name]
                             if thread_id:
-                                thread = {
+                                thread_event_id = thread_id
+                            else:
+                                thread_event_id = reply_to_event_id
+                            thread = {
                                     'rel_type': 'm.thread', 
-                                    'event_id': thread_id, 
+                                    'event_id': thread_event_id, 
                                     'is_falling_back': True, 
                                     'm.in_reply_to': {'event_id': reply_to_event_id}
-                                }
-                                await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client,thread=thread)
-                            await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client)
+                            }
+                            await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client,thread=thread)
                 await send_room_message(
                 	self.client,
                 	room_id,

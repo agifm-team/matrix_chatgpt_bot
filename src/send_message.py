@@ -53,9 +53,12 @@ async def send_room_message(
             "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
         }
     if thread_id is not None:
-        content["m.relates_to"] = {
+        thread_event_id = thread_id
+    else:
+        thread_event_id = reply_to_event_id
+    content["m.relates_to"] = {
             'rel_type': 'm.thread', 
-            'event_id': thread_id, 
+            'event_id': thread_event_id, 
             'is_falling_back': True, 
             'm.in_reply_to': {'event_id': reply_to_event_id}
         }
