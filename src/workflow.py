@@ -25,7 +25,7 @@ async def workflow_invoke(
             api_url,
             json={"input": prompt, "sessionId": sessionId , "enableStreaming": False},
             headers=headers,
-            timeout= 30,
+            timeout= 90,
         )
     result = {}
     if response.status_code == 200:
