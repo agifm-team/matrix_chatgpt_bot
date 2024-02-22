@@ -172,16 +172,18 @@ class Bot:
                     result = await workflow_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id)
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
                     for i in get_steps:
-                        data = result[str(i["order"])]
+                        data = result[i["order"]]
                         if thread_id:
-                                thread = {
+                            thread_event_id = thread_id
+                        else:
+                            thread_event_id = reply_to_event_id
+                        thread = {
                                     'rel_type': 'm.thread', 
-                                    'event_id': thread_id, 
+                                    'event_id': thread_event_id, 
                                     'is_falling_back': True, 
                                     'm.in_reply_to': {'event_id': reply_to_event_id}
-                                }
-                                await send_message_as_tool(i["agentId"], data, room_id, reply_to_event_id,self.httpx_client, thread)
-                        await send_message_as_tool(i["agentId"], data, room_id, reply_to_event_id,self.httpx_client)
+                            }
+                        await send_message_as_tool(i["agentId"], data, room_id, reply_to_event_id,self.httpx_client, thread)
                     return
                 result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,session_id)
                 if result[1] != []:
@@ -466,26 +468,6 @@ class Bot:
             estr = traceback.format_exc()
             logger.info(estr)
 
-
-    # !help command
-    async def help(self, room_id, reply_to_event_id, sender_id, user_message):
-        help_info = (
-            "!gpt [prompt], generate a one time response without context conversation\n"
-            + "!chat [prompt], chat with context conversation\n"
-            + "!pic [prompt], Image generation by DALL·E or LocalAI or stable-diffusion-webui\n"  # noqa: E501
-            + "!new + chat, start a new conversation \n"
-            + "!lc [prompt], chat using langchain api\n"
-            + "!help, help message"
-        )  # noqa: E501
-
-        await send_room_message(
-            self.client,
-            room_id,
-            reply_message=help_info,
-            sender_id=sender_id,
-            user_message=user_message,
-            reply_to_event_id=reply_to_event_id,
-        )
 
     # send general error message
     async def send_general_error_message(
