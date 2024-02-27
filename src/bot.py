@@ -33,7 +33,7 @@ from api import invite_bot_to_room, send_message_as_tool
 from log import getlogger
 from send_message import send_room_message
 from superagent import get_agents, get_tools, superagent_invoke
-from workflow import workflow_invoke, workflow_steps
+from workflow import stream_json_response_with_auth, workflow_steps
 
 logger = getlogger()
 GENERAL_ERROR_MESSAGE = "Something went wrong, please try again or contact admin."
@@ -169,21 +169,13 @@ class Bot:
             content_body = content_body.replace(self.bot_username_without_homeserver, '')
             try:
                 if self.workflow:
-                    result = await workflow_invoke(self.superagent_url,self.workflow_id,content_body,self.api_key,self.httpx_client,session_id)
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
-                    for i in get_steps:
-                        data = result[i["order"]]
-                        if thread_id:
-                            thread_event_id = thread_id
-                        else:
-                            thread_event_id = reply_to_event_id
-                        thread = {
-                                    'rel_type': 'm.thread', 
-                                    'event_id': thread_event_id, 
-                                    'is_falling_back': True, 
-                                    'm.in_reply_to': {'event_id': reply_to_event_id}
-                            }
-                        await send_message_as_tool(i["agentId"], data, room_id, reply_to_event_id,self.httpx_client, thread)
+                    api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
+                    if thread_id:
+                        thread_event_id = thread_id
+                    else:
+                        thread_event_id = reply_to_event_id
+                    await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client)                   
                     return
                 result = await superagent_invoke(self.superagent_url,self.agent_id,content_body,self.api_key,self.httpx_client,session_id)
                 if result[1] != []:
