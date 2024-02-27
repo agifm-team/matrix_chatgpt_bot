@@ -232,8 +232,8 @@ class Bot:
             result = await self.client.join(room.room_id)
             if self.workflow:
                 get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client )
-                for i in get_steps:
-                    bot_username = await invite_bot_to_room(i["agentId"], self.httpx_client)
+                for i in get_steps.values():
+                    bot_username = await invite_bot_to_room(i, self.httpx_client)
                     await self.client.room_invite(room.room_id, bot_username)
             else:
                 get_tools_agent_id = await get_tools(self.superagent_url, self.agent_id ,self.api_key, self.httpx_client)

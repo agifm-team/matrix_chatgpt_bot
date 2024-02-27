@@ -1,5 +1,6 @@
 import httpx
 from mautrix.client import ClientAPI
+import markdown
 
 
 async def send_message_as_tool(tool_id, tool_input, room_id, event_id, session: httpx.AsyncClient, thread=None):
@@ -8,7 +9,13 @@ async def send_message_as_tool(tool_id, tool_input, room_id, event_id, session: 
         return None
     msg = {
         "body": tool_input,
-        "msgtype": "m.text"
+        "msgtype": "m.text",
+        "format": "org.matrix.custom.html",
+        "formatted_body" : markdown.markdown(
+            tool_input, 
+            extensions=["nl2br", "tables", "fenced_code"]
+        )
+
     }
     if thread is None:
         thread = {
