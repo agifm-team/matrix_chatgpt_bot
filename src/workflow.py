@@ -50,7 +50,7 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
                 # Get the next line which contains data
                 data_line = next(iterator)
                 if data_line.startswith('data:'):
-                    data = data_line.split(':', 1)[1].strip()
+                    data = data_line[6:]
 
                     # Check if the current event is different from the previous one
                     if prev_event is not None and event != prev_event:
@@ -61,7 +61,7 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
                         prev_data = ''
 
                     # Accumulate the data for the current event
-                    prev_data += data + ' '
+                    prev_data += data
 
                     # Update the previous event
                     prev_event = event
