@@ -46,10 +46,10 @@ class Bot:
         homeserver: str,
         user_id: str,
         superagent_url: str,
-        agent_id: str,
+        id: str,
         api_key: str,
         owner_id: str,
-        workflow_id: str,
+        type: str,
         password: Union[str, None] = None,
         device_id: str = "MatrixChatGPTBot",
         import_keys_path: Optional[str] = None,
@@ -66,9 +66,11 @@ class Bot:
 
         self.workflow = False
 
-        if agent_id is None and workflow_id is not None:
+        if type == "WORKFLOW":
             self.workflow = True
-            self.workflow_id = workflow_id
+            self.workflow_id = id
+        else:
+            self.agent_id = id
 
         self.homeserver: str = homeserver
         self.user_id: str = user_id
@@ -79,9 +81,7 @@ class Bot:
         self.bot_username_without_homeserver = self.user_id.replace(":pixx.co", '')
 
         self.superagent_url = superagent_url
-        self.agent_id = agent_id
         self.api_key = api_key
-
 
         self.import_keys_path: str = import_keys_path
         self.import_keys_password: str = import_keys_password

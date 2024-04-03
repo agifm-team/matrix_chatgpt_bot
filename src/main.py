@@ -35,9 +35,10 @@ async def main():
             import_keys_password=config.get("import_keys_password"),
             timeout=config.get("timeout"),
             superagent_url=config.get("superagent_url"),
-            agent_id=config.get("agent_id"),
             api_key=config.get("api_key"),
-            owner_id=config.get("owner_id")
+            owner_id=config.get("owner_id"),
+            id=config.get("ID"),
+            type=config.get("TYPE"),
         )
         if (
             config.get("import_keys_path")
@@ -53,12 +54,12 @@ async def main():
             device_id=os.environ.get("DEVICE_ID"),
             import_keys_path=os.environ.get("IMPORT_KEYS_PATH"),
             import_keys_password=os.environ.get("IMPORT_KEYS_PASSWORD"),
-            superagent_url=os.environ.get("SUPERAGENT_URL"),
-            agent_id=os.environ.get("AGENT_ID"),
-            api_key=os.environ.get("API_KEY"),
             timeout=os.environ.get("TIMEOUT"),
+            superagent_url=os.environ.get("SUPERAGENT_URL"),
+            api_key=os.environ.get("API_KEY"),
             owner_id=os.environ.get("OWNER_ID"),
-            workflow_id=os.environ.get("WORKFLOW_ID")
+            id=os.environ.get("ID"),
+            type=os.environ.get("TYPE")
         )
         if (
             os.environ.get("IMPORT_KEYS_PATH")
