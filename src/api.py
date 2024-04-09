@@ -7,10 +7,11 @@ import markdown
 async def send_message_as_tool(tool_id, tool_input, room_id, event_id, thread=None):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://bots.pixx.co/agents/{tool_id}") as result:
-            if not result.json():
+            data = result.json()
+            if not data:
                 return None
             else:
-                access_token = result.json()['access_token']
+                access_token = data['access_token']
     msg = {
         "body": tool_input,
         "msgtype": "m.text",
