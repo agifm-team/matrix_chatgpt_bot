@@ -1,10 +1,12 @@
 import httpx
+import aiohttp
 from mautrix.client import ClientAPI
 import markdown
 
 
-async def send_message_as_tool(tool_id, tool_input, room_id, event_id, session: httpx.AsyncClient, thread=None):
-    result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
+async def send_message_as_tool(tool_id, tool_input, room_id, event_id, thread=None):
+    async with aiohttp.ClientSession() as session:
+        result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
     if not result.json():
         return None
     msg = {

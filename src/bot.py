@@ -195,7 +195,7 @@ class Bot:
                                     'is_falling_back': True, 
                                     'm.in_reply_to': {'event_id': reply_to_event_id}
                             }
-                            await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,self.httpx_client,thread=thread)
+                            await send_message_as_tool(tool_id,tool_input,room_id,reply_to_event_id,thread=thread)
                 await send_room_message(
                 	self.client,
                 	room_id,

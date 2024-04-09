@@ -39,23 +39,23 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
             response.raise_for_status()
             async for line in response.content:
                    # Split the line into event and data parts
-                if line.startswith('id:'):
-                    event = line.split(':', 1)[1].strip()
+                if line.startswith(b'id:'):
+                    event = line.decode('utf-8').split(':', 1)[1].strip()
                     if prev_event is not None and event != prev_event:
                         # Print the complete message for the previous event
                         print(
                             f'Event: {prev_event}, Data: {prev_data}')
-                        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, session)
+                        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id)
                         # Reset the previous data
                         prev_data = ''
                     # Get the next line which contains data
-                if line.startswith('data:'):
+                if line.startswith(b'data:'):
                     print(line)
                     event_data = line[6:-1]
                     if event_data == b'':
                         prev_data  += '\n'
                     else:
-                        prev_data = event_data.decode('utf-8')
+                        prev_data += event_data.decode('utf-8')
 
                     # Update the previous event
                     prev_event = event
@@ -63,16 +63,16 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
     # Print the complete message for the last event
     if prev_event is not None:
         print(f'Event: {prev_event}, Data: {prev_data}')
-        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, session)
+        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id)
     else:
         print('Failed to fetch streaming data')
 
 
-async def send_agent_message(agent, thread_event_id, reply_id, data, room_id, session):
+async def send_agent_message(agent, thread_event_id, reply_id, data, room_id):
     thread = {
         'rel_type': 'm.thread',
         'event_id': thread_event_id,
         'is_falling_back': True,
         'm.in_reply_to': {'event_id': reply_id}
     }
-    await send_message_as_tool(agent, data, room_id, reply_id, session, thread)
+    await send_message_as_tool(agent, data, room_id, reply_id, thread)
