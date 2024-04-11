@@ -7,7 +7,7 @@ import markdown
 async def send_message_as_tool(tool_id, tool_input, room_id, event_id, thread=None):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://bots.pixx.co/agents/{tool_id}") as result:
-            data = result.json()
+            data = await result.json()
             if not data:
                 return None
             else:
