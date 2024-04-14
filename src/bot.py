@@ -204,7 +204,7 @@ class Bot:
                     else:
                         thread_event_id = reply_to_event_id
                     await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client)
-                    self.msg_limit[sender_id] += 2
+                    self.msg_limit[sender_id] += len(get_steps)
                     return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, session_id)
                 if result[1] != []:
@@ -224,6 +224,7 @@ class Bot:
                                 'is_falling_back': True,
                                 'm.in_reply_to': {'event_id': reply_to_event_id}
                             }
+                            self.msg_limit[sender_id] += 1
                             await send_message_as_tool(tool_id, tool_input, room_id, reply_to_event_id, thread=thread)
                 await send_room_message(
                     self.client,
