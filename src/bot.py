@@ -181,7 +181,7 @@ class Bot:
                 tagged = True
 
         if self.user_id != event.sender and tagged:
-            if self.owner_id != sender_id or self.msg_limit[sender_id] > 10:
+            if self.owner_id != sender_id and self.msg_limit[sender_id] > 10:
                 await send_room_message(
                     self.client,
                     room_id,
