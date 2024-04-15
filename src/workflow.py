@@ -50,10 +50,11 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
                         prev_data = ''
                     # Get the next line which contains data
                 if line.startswith(b'data:'):
-                    print(line)
                     event_data = line[6:-1]
                     if event_data == b'':
                         prev_data  += '\n'
+                    elif event_data.isspace():
+                        prev_data += '\n' + event_data.decode('utf-8')[1:]
                     else:
                         prev_data += event_data.decode('utf-8')
 
