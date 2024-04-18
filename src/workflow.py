@@ -43,6 +43,8 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
                     event = line.decode('utf-8').split(':', 1)[1].strip()
                     if prev_event is not None and event != prev_event:
                         # Print the complete message for the previous event
+                        prev_data = prev_data.replace("````","`\n```")
+                        prev_data = prev_data.replace("```", "\n```")
                         print(
                             f'Event: {prev_event}, Data: {prev_data}')
                         await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id)
