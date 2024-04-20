@@ -180,7 +180,7 @@ class Bot:
             if self.bot_username in event.formatted_body:
                 tagged = True
 
-        if self.user_id != event.sender and tagged:
+        if self.user_id != event.sender and (tagged or room.is_group):
             if self.owner_id != sender_id and self.msg_limit[sender_id] > 10:
                 await send_room_message(
                     self.client,
