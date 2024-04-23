@@ -159,7 +159,6 @@ class Bot:
         sender_id = event.sender
 
         thread_id = None
-        session_id = room_id
         # user_message
         raw_user_message = event.body
 
@@ -168,7 +167,6 @@ class Bot:
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
-                session_id = thread_id
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
@@ -206,7 +204,7 @@ class Bot:
                     await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client)
                     self.msg_limit[sender_id] += len(get_steps)
                     return
-                result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, session_id)
+                result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
                 if result[1] != []:
                     get_called_agents = await get_agents(self.superagent_url, self.agent_id, self.api_key, self.httpx_client)
                     if get_called_agents != {}:
