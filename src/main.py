@@ -82,9 +82,9 @@ async def main():
             lambda: asyncio.create_task(matrix_bot.close(sync_task)),
         )
     #3* 60 * 60 = 10800 seconds = 3 hours
-    await asyncio.create_task(
-        matrix_bot.periodic_task(10800)
-    )
+    # await asyncio.create_task(
+    #     matrix_bot.periodic_task(10800)
+    # )
     if matrix_bot.client.should_upload_keys:
         await matrix_bot.client.keys_upload()
 
