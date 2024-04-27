@@ -17,7 +17,6 @@ logger = getlogger()
 async def main():
     need_import_keys = False
     config_path = Path(os.path.dirname(__file__)).parent / "config.json"
-    print(config_path)
     if os.path.isfile(config_path):
         try:
             fp = open(config_path, encoding="utf8")
@@ -25,7 +24,6 @@ async def main():
         except Exception:
             logger.error("config.json load error, please check the file")
             sys.exit(1)
-        print(config.get("device_id"))
         matrix_bot = Bot(
             homeserver=config.get("homeserver"),
             user_id=config.get("user_id"),
@@ -84,7 +82,9 @@ async def main():
             lambda: asyncio.create_task(matrix_bot.close(sync_task)),
         )
     #3* 60 * 60 = 10800 seconds = 3 hours
-    await asyncio.ensure_future(matrix_bot.periodic_task(10800))
+    await asyncio.create_task(
+        matrix_bot.periodic_task(10800)
+    )
     if matrix_bot.client.should_upload_keys:
         await matrix_bot.client.keys_upload()
 

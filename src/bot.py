@@ -94,7 +94,7 @@ class Bot:
 
         self.timeout: float = timeout or 120.0
 
-        self.base_path = Path(os.path.dirname(__file__)).parent
+        self.base_path = "/app/keys"
 
         self.httpx_client = httpx.AsyncClient(
             follow_redirects=True,
