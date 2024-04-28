@@ -1,6 +1,4 @@
 import asyncio
-import os
-from pathlib import Path
 import re
 import sys
 import traceback
@@ -177,6 +175,10 @@ class Bot:
         if event.formatted_body:
             if self.bot_username in event.formatted_body:
                 tagged = True
+        if thread_id:
+            thread_event_id = thread_id
+        else:
+            thread_event_id = reply_to_event_id
 
         if self.user_id != event.sender and (tagged or room.is_group):
             if self.owner_id != sender_id and self.msg_limit[sender_id] > 10:
@@ -197,10 +199,6 @@ class Bot:
                 if self.workflow:
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
-                    if thread_id:
-                        thread_event_id = thread_id
-                    else:
-                        thread_event_id = reply_to_event_id
                     await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client)
                     self.msg_limit[sender_id] += len(get_steps)
                     return
@@ -235,7 +233,7 @@ class Bot:
                 )
                 self.msg_limit[sender_id] += 1
             except Exception as e:
-                print(e)
+                logger.error(e)
 
     # message_callback decryption_failure event
 

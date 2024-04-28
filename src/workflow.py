@@ -1,5 +1,6 @@
 import httpx
 import aiohttp
+import logging
 
 from api import send_message_as_tool
 
@@ -45,7 +46,7 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
                         # Print the complete message for the previous event
                         prev_data = prev_data.replace("````","`\n```")
                         prev_data = prev_data.replace("```", "\n```")
-                        print(
+                        logging.info(
                             f'Event: {prev_event}, Data: {prev_data}')
                         await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id)
                         # Reset the previous data
@@ -67,10 +68,10 @@ async def stream_json_response_with_auth(api_url, api_key, msg_data, agent, thre
     if prev_event is not None:
         prev_data = prev_data.replace("````","`\n```")
         prev_data = prev_data.replace("```", "\n```")
-        print(f'Event: {prev_event}, Data: {prev_data}')
+        logging.info(f'Event: {prev_event}, Data: {prev_data}')
         await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id)
     else:
-        print('Failed to fetch streaming data')
+        logging.info('Failed to fetch streaming data')
 
 
 async def send_agent_message(agent, thread_event_id, reply_id, data, room_id):
