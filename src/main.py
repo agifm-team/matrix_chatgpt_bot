@@ -83,24 +83,17 @@ async def main():
             lambda: asyncio.create_task(matrix_bot.close(sync_task)),
         )
     #3* 60 * 60 = 10800 seconds = 3 hours
-    five_hours = timedelta(hours=3).total_seconds()
+    time_interval = timedelta(hours=3).total_seconds()
 
-    periodic_task_handle = loop.call_later(five_hours, lambda: asyncio.create_task(matrix_bot.periodic_task()))
+    #periodic_task_handle = loop.call_later(five_hours, lambda: asyncio.create_task(matrix_bot.periodic_task()))
 
 
     def reschedule_periodic():
-
-        nonlocal periodic_task_handle
-
-        periodic_task_handle = loop.call_later(five_hours, lambda: asyncio.create_task(matrix_bot.periodic_task()))
-
-        reschedule_periodic()  # Reschedule the next execution
-
-
-    # Start the periodic task for the first time
-
-    reschedule_periodic()
+        periodic_task_handle = loop.call_later(time_interval, lambda: asyncio.create_task(matrix_bot.periodic_task()))
+        return periodic_task_handle
     
+    reschedule_periodic()
+
     if matrix_bot.client.should_upload_keys:
         await matrix_bot.client.keys_upload()
 
