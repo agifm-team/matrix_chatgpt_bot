@@ -13,6 +13,7 @@ async def send_room_message(
     user_message: str = "",
     reply_to_event_id: str = "",
     thread_id = None,
+    msg_limit=0,
 ) -> None:
     if reply_to_event_id == "":
         content = {
@@ -23,6 +24,7 @@ async def send_room_message(
                 reply_message,
                 extensions=["nl2br", "tables", "fenced_code"],
             ),
+            "message_limit" : msg_limit,
         }
     else:
         body = "> <" + sender_id + "> " + user_message + "\n\n" + reply_message
@@ -51,6 +53,7 @@ async def send_room_message(
             "format": format,
             "formatted_body": formatted_body,
             "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
+            "message_limit" : msg_limit,
         }
     if thread_id is not None:
         thread_event_id = thread_id

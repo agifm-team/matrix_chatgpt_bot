@@ -183,7 +183,8 @@ class Bot:
                     reply_message="10 Messages Limit Exceeded!",
                     sender_id=sender_id,
                     user_message=raw_user_message,
-                    reply_to_event_id=reply_to_event_id
+                    reply_to_event_id=reply_to_event_id,
+                    msg_limit=self.msg_limit[sender_id],
                 )
                 return
             # remove newline character from event.body
@@ -194,8 +195,8 @@ class Bot:
                 if self.workflow:
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
-                    await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client)
                     self.msg_limit[sender_id] += len(get_steps)
+                    await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, self.msg_limit[sender_id])
                     return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
                 if result[1] != []:
@@ -216,7 +217,8 @@ class Bot:
                                 'm.in_reply_to': {'event_id': reply_to_event_id}
                             }
                             self.msg_limit[sender_id] += 1
-                            await send_message_as_tool(tool_id, tool_input, room_id, reply_to_event_id, thread=thread)
+                            await send_message_as_tool(tool_id, tool_input, room_id, reply_to_event_id, thread, self.user_id, self.msg_limit[sender_id])
+                self.msg_limit[sender_id] += 1
                 await send_room_message(
                     self.client,
                     room_id,
@@ -224,9 +226,9 @@ class Bot:
                     sender_id=sender_id,
                     user_message=raw_user_message,
                     reply_to_event_id=reply_to_event_id,
-                    thread_id=thread_id
+                    thread_id=thread_id,
+                    msg_limit=self.msg_limit[sender_id],
                 )
-                self.msg_limit[sender_id] += 1
             except Exception as e:
                 logger.error(e)
 
