@@ -136,14 +136,9 @@ class Bot:
         logger.info("Bot closed!")
 
 
-    async def periodic_task(self,interval):
-        while self.scheduler:
-            await asyncio.sleep(interval)
-            await self.my_periodic_function()
-
-
-    async def my_periodic_function(self):
-        # This is the function you want to run periodically
+    async def periodic_task(self,interval=None):
+        # while self.scheduler:
+        #     await asyncio.sleep(interval)
         self.msg_limit = {}
 
     # message_callback RoomMessageText event
