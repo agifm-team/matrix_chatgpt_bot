@@ -174,7 +174,7 @@ class Bot:
             thread_event_id = thread_id
         else:
             thread_event_id = reply_to_event_id
-        dm_tag = room.is_group and (not self.workflow or self.user_id in room.power_levels.users)
+        dm_tag = room.is_group and self.user_id in room.power_levels.users
         if self.user_id != event.sender and (tagged or dm_tag):
             if self.owner_id != sender_id and self.msg_limit[sender_id] >= 10:
                 await send_room_message(
