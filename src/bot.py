@@ -139,7 +139,7 @@ class Bot:
     async def periodic_task(self,interval=None):
         # while self.scheduler:
         #     await asyncio.sleep(interval)
-        self.msg_limit = {}
+        self.msg_limit = DefaultDict()
 
     # message_callback RoomMessageText event
     async def message_callback(self, room: MatrixRoom, event: RoomMessageText) -> None:
@@ -174,9 +174,9 @@ class Bot:
             thread_event_id = thread_id
         else:
             thread_event_id = reply_to_event_id
-
-        if self.user_id != event.sender and (tagged or room.is_group):
-            if self.owner_id != sender_id and self.msg_limit[sender_id] > 10:
+        dm_tag = room.is_group and not self.workflow
+        if self.user_id != event.sender and (tagged or dm_tag):
+            if self.owner_id != sender_id and self.msg_limit[sender_id] >= 10:
                 await send_room_message(
                     self.client,
                     room_id,
