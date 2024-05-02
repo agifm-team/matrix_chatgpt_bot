@@ -72,6 +72,76 @@ async def get_tools(superagent_url: str,agent_id: str,api_key: str, session: htt
                 result.append(tools['agentId'])
     return result
 
+async def create_workflow(superagent_url: str,api_key: str,session: httpx.AsyncClient):
+    api_url = f"{superagent_url}/api/v1/workflows"
+    headers = {
+            'Authorization': f'Bearer {api_key}',
+        }
+    data = {
+        "name" : "My Workflow",
+        "description" : "desc"
+    }
+    response = await session.post(
+            api_url,
+            headers=headers,
+            timeout= 30,
+            data=data
+    )
+    if response.status_code == 200:
+        data = response.json()['data']['id']
+        return data
+    return "error"
+
+async def update_yaml(superagent_url: str,api_key: str,workflow_id: str, yaml: str,session: httpx.AsyncClient):
+    api_url = f"{superagent_url}/api/v1/workflows/{workflow_id}/config"
+    headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/x-yaml'
+        }
+    response = await session.post(
+            api_url,
+            headers=headers,
+            timeout= 30,
+            data=yaml
+    )
+    if response.status_code == 200:
+        return True
+    return False
+
+async def api_key(username: str ,session: httpx.AsyncClient):
+    api_url = f"https://bots.pixx.co/user/{username}"
+    response = await session.get(
+            api_url,
+            timeout= 30
+    )
+    if response.status_code == 200:
+        return response.content
+    return ""
+
+
+async def deploy_bot(email,api_key,workflow_id,session: httpx.AsyncClient):
+    api_url = f"https://bots.pixx.co/add"
+    data = {
+        "email_id" : email,
+        "bot_username" : "",
+        "api_key" : api_key,
+        "name" : "test workflow",
+        "description" : "yaml test",
+        "id" : workflow_id,
+        "tags" : "",
+        "publish" : False,
+        "type": "WORKFLOW"
+    }
+    response = await session.post(
+            api_url,
+            timeout= 30,
+            json=data
+    )
+    if response.status_code == 200:
+        return response.content
+    return ""
+
+
 
 
 

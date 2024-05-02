@@ -92,7 +92,7 @@ async def main():
         periodic_task_handle = loop.call_later(time_interval, lambda: asyncio.create_task(matrix_bot.periodic_task()))
         return periodic_task_handle
     
-    reschedule_periodic()
+    # reschedule_periodic()
 
     if matrix_bot.client.should_upload_keys:
         await matrix_bot.client.keys_upload()

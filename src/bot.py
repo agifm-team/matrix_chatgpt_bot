@@ -30,16 +30,18 @@ from api import invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
 from send_message import send_room_message
-from superagent import get_agents, get_tools, superagent_invoke
+from superagent import api_key, create_workflow, deploy_bot, get_agents, get_tools, superagent_invoke
 from workflow import stream_json_response_with_auth, workflow_steps
 
 logger = getlogger()
 GENERAL_ERROR_MESSAGE = "Something went wrong, please try again or contact admin."
 INVALID_NUMBER_OF_PARAMETERS_MESSAGE = "Invalid number of parameters"
 
+
 class DefaultDict(dict):
     def __missing__(self, key):
         return 0
+
 
 class Bot:
     def __init__(
@@ -126,7 +128,8 @@ class Bot:
         )
 
         # regular expression to match keyword commands
-        self.help_prog = re.compile(r"^\s*!help\s*.*$")
+        self.help_prog = re.compile(r"\s*!help\s+(.+)$")
+        self.gpt_prog = re.compile(r"\s*!deploy\s+(.+)$")
 
     async def close(self, task: asyncio.Task) -> None:
         await self.httpx_client.aclose()
@@ -135,8 +138,7 @@ class Bot:
         task.cancel()
         logger.info("Bot closed!")
 
-
-    async def periodic_task(self,interval=None):
+    async def periodic_task(self, interval=None):
         # while self.scheduler:
         #     await asyncio.sleep(interval)
         self.msg_limit = DefaultDict()
@@ -157,81 +159,69 @@ class Bot:
 
         body = event.source
 
-        if "m.relates_to" in body["content"]:
-            if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
-                thread_id = body["content"]["m.relates_to"]["event_id"]
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
-        tagged = False
         # prevent command trigger loop
-        if event.formatted_body:
-            if self.bot_username in event.formatted_body:
-                tagged = True
-        if thread_id:
-            thread_event_id = thread_id
-        else:
-            thread_event_id = reply_to_event_id
-        dm_tag = room.member_count == 2
-        if self.user_id != event.sender and (tagged or dm_tag):
-            if self.owner_id != sender_id and self.msg_limit[sender_id] >= 10:
-                await send_room_message(
-                    self.client,
-                    room_id,
-                    reply_message="10 Messages Limit Exceeded!",
-                    sender_id=sender_id,
-                    user_message=raw_user_message,
-                    reply_to_event_id=reply_to_event_id,
-                    msg_limit=self.msg_limit[sender_id],
-                )
-                return
-            # remove newline character from event.body
-            content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
-            content_body = content_body.replace(
-                self.bot_username_without_homeserver, '')
-            try:
-                if self.workflow:
-                    get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
-                    api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
-                    self.msg_limit[sender_id] += len(get_steps)
-                    await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, self.msg_limit[sender_id])
+        # remove newline character from event.body
+        content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
+        content_body = content_body.replace(
+            self.bot_username_without_homeserver, '')
+        if self.user_id != event.sender:
+            m = self.help_prog.match(content_body)
+            if m:
+                yaml_file = content_body.replace("!help","")
+                try:
+                    result = await superagent_invoke(self.superagent_url, self.agent_id, yaml_file, self.api_key, self.httpx_client, room_id)
+                    await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message=result[0],
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id
+                    )
+                except Exception as e:
+                    logger.error(e)
+            n = self.gpt_prog.match(content_body)
+            if n:
+                data = content_body.replace("!deploy","")
+                user_api_key = api_key(event.sender, self.httpx_client)
+                api_key = user_api_key[0]
+                workflow = create_workflow(self.superagent_url,api_key, self.httpx_client)
+                if workflow == "error":
+                    await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message="Error!",
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id
+                    )
                     return
-                result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
-                if result[1] != []:
-                    get_called_agents = await get_agents(self.superagent_url, self.agent_id, self.api_key, self.httpx_client)
-                    if get_called_agents != {}:
-                        for i in result[1]:
-                            tool_name = i[0]['tool']
-                            tool_input = i[0]['tool_input']['input']
-                            tool_id = get_called_agents[tool_name]
-                            if thread_id:
-                                thread_event_id = thread_id
-                            else:
-                                thread_event_id = reply_to_event_id
-                            thread = {
-                                'rel_type': 'm.thread',
-                                'event_id': thread_event_id,
-                                'is_falling_back': True,
-                                'm.in_reply_to': {'event_id': reply_to_event_id}
-                            }
-                            self.msg_limit[sender_id] += 1
-                            await send_message_as_tool(tool_id, tool_input, room_id, reply_to_event_id, thread, self.user_id, self.msg_limit[sender_id])
-                self.msg_limit[sender_id] += 1
-                await send_room_message(
-                    self.client,
-                    room_id,
-                    reply_message=result[0],
-                    sender_id=sender_id,
-                    user_message=raw_user_message,
-                    reply_to_event_id=reply_to_event_id,
-                    thread_id=thread_id,
-                    msg_limit=self.msg_limit[sender_id],
-                )
-            except Exception as e:
-                logger.error(e)
+                update_yaml = update_yaml(self.superagent_url, api_key, workflow, data, self.httpx_client)
+                if not update_yaml:
+                    await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message="Error!",
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id
+                    )
+                    return
 
+                deploy_workflow = deploy_bot(user_api_key[1], api_key, workflow, self.httpx_client)
+                await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message="workflow deployed successfully!",
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id
+                    )
     # message_callback decryption_failure event
 
     async def decryption_failure(self, room: MatrixRoom, event: MegolmEvent) -> None:
@@ -254,17 +244,6 @@ class Bot:
         # Attempt to join 3 times before giving up
         for attempt in range(3):
             result = await self.client.join(room.room_id)
-            if self.workflow:
-                get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
-                for i in get_steps.values():
-                    bot_username = await invite_bot_to_room(i, self.httpx_client)
-                    await self.client.room_invite(room.room_id, bot_username)
-            else:
-                get_tools_agent_id = await get_tools(self.superagent_url, self.agent_id, self.api_key, self.httpx_client)
-                if get_tools_agent_id != []:
-                    for i in get_tools_agent_id:
-                        bot_username = await invite_bot_to_room(i, self.httpx_client)
-                        await self.client.room_invite(room.room_id, bot_username)
             if type(result) == JoinError:
                 logger.error(
                     f"Error joining room {room.room_id} (attempt %d): %s",
