@@ -178,8 +178,8 @@ class Bot:
             n = self.gpt_prog.match(content_body)
             if n:
                 data = content_body.replace("!deploy","")
-                user_api_key = api_key(event.sender, self.httpx_client)
-                workflow = create_workflow(self.superagent_url, user_api_key[0], self.httpx_client)
+                user_api_key = await api_key(event.sender, self.httpx_client)
+                workflow = await create_workflow(self.superagent_url, user_api_key[0], self.httpx_client)
                 if workflow == "error":
                     await send_room_message(
                         self.client,
@@ -190,7 +190,7 @@ class Bot:
                         reply_to_event_id=reply_to_event_id
                     )
                     return
-                update_yaml = update_yaml(self.superagent_url, user_api_key[0], workflow, data, self.httpx_client)
+                update_yaml = await update_yaml(self.superagent_url, user_api_key[0], workflow, data, self.httpx_client)
                 if not update_yaml:
                     await send_room_message(
                         self.client,
@@ -202,7 +202,7 @@ class Bot:
                     )
                     return
 
-                deploy_workflow = deploy_bot(user_api_key[1], user_api_key[0], workflow, self.httpx_client)
+                deploy_workflow = await deploy_bot(user_api_key[1], user_api_key[0], workflow, self.httpx_client)
                 logger.info(deploy_workflow)
                 await send_room_message(
                         self.client,
