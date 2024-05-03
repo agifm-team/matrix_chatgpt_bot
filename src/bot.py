@@ -52,7 +52,6 @@ class Bot:
         id: str,
         api_key: str,
         owner_id: str,
-        type: str,
         password: Union[str, None] = None,
         device_id: str = "MatrixChatGPTBot",
         import_keys_path: Optional[str] = None,
@@ -66,16 +65,6 @@ class Bot:
         if password is None:
             logger.warning("password is required")
             sys.exit(1)
-        self.scheduler = True
-        self.msg_limit = DefaultDict()
-
-        self.workflow = False
-
-        if type == "WORKFLOW":
-            self.workflow = True
-            self.workflow_id = id
-        else:
-            self.agent_id = id
 
         self.homeserver: str = homeserver
         self.user_id: str = user_id
@@ -88,6 +77,7 @@ class Bot:
 
         self.superagent_url = superagent_url
         self.api_key = api_key
+        self.agent_id = id
 
         self.import_keys_path: str = import_keys_path
         self.import_keys_password: str = import_keys_password
@@ -214,6 +204,7 @@ class Bot:
                     return
 
                 deploy_workflow = deploy_bot(user_api_key[1], api_key, workflow, self.httpx_client)
+                logger.info(deploy_workflow)
                 await send_room_message(
                         self.client,
                         room_id,
