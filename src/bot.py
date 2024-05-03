@@ -30,7 +30,7 @@ from api import invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
 from send_message import send_room_message
-from superagent import api_key, create_workflow, deploy_bot, get_agents, get_tools, superagent_invoke
+from superagent import api_key, create_workflow, deploy_bot, get_agents, get_tools, superagent_invoke, update_yaml
 from workflow import stream_json_response_with_auth, workflow_steps
 
 logger = getlogger()
@@ -191,12 +191,12 @@ class Bot:
                         reply_to_event_id=reply_to_event_id
                     )
                     return
-                update_yaml = await update_yaml(self.superagent_url, user_api_key[0], workflow, data, self.httpx_client)
-                if not update_yaml[0]:
+                update_workflow = await update_yaml(self.superagent_url, user_api_key[0], workflow, data, self.httpx_client)
+                if not update_workflow[0]:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message=f"Error! {update_yaml[1]}",
+                        reply_message=f"Error! {update_workflow[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
