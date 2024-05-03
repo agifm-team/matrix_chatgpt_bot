@@ -37,7 +37,6 @@ async def main():
             api_key=config.get("api_key"),
             owner_id=config.get("owner_id"),
             id=config.get("ID"),
-            type=config.get("TYPE"),
         )
         if (
             config.get("import_keys_path")
@@ -57,8 +56,7 @@ async def main():
             superagent_url=os.environ.get("SUPERAGENT_URL"),
             api_key=os.environ.get("API_KEY"),
             owner_id=os.environ.get("OWNER_ID"),
-            id=os.environ.get("ID"),
-            type=os.environ.get("TYPE")
+            id=os.environ.get("ID")
         )
         if (
             os.environ.get("IMPORT_KEYS_PATH")
@@ -82,17 +80,6 @@ async def main():
             getattr(signal, signame),
             lambda: asyncio.create_task(matrix_bot.close(sync_task)),
         )
-    #3* 60 * 60 = 10800 seconds = 3 hours
-    time_interval = timedelta(hours=3).total_seconds()
-
-    #periodic_task_handle = loop.call_later(five_hours, lambda: asyncio.create_task(matrix_bot.periodic_task()))
-
-
-    def reschedule_periodic():
-        periodic_task_handle = loop.call_later(time_interval, lambda: asyncio.create_task(matrix_bot.periodic_task()))
-        return periodic_task_handle
-    
-    # reschedule_periodic()
 
     if matrix_bot.client.should_upload_keys:
         await matrix_bot.client.keys_upload()
