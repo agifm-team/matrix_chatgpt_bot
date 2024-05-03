@@ -179,6 +179,7 @@ class Bot:
             if n:
                 data = content_body.replace("!deploy","")
                 user_api_key = await api_key(event.sender, self.httpx_client)
+                print(user_api_key)
                 workflow = await create_workflow(self.superagent_url, user_api_key[0], self.httpx_client)
                 if workflow[0] == False:
                     await send_room_message(

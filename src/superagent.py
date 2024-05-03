@@ -85,7 +85,7 @@ async def create_workflow(superagent_url: str,api_key: str,session: httpx.AsyncC
             api_url,
             headers=headers,
             timeout= 30,
-            data=data
+            json=data
     )
     if response.status_code == 200:
         data = response.json()['data']['id']
