@@ -78,6 +78,7 @@ class Bot:
         self.superagent_url = superagent_url
         self.api_key = api_key
         self.agent_id = id
+        self.yaml_messages = {}
 
         self.import_keys_path: str = import_keys_path
         self.import_keys_password: str = import_keys_password
@@ -120,6 +121,7 @@ class Bot:
         # regular expression to match keyword commands
         self.help_prog = re.compile(r"\s*!help\s+(.+)$")
         self.gpt_prog = re.compile(r"\s*!deploy\s+(.+)$")
+        self.confirm_prog = re.compile(r"\s*!confirm\s*.*$")
 
     async def close(self, task: asyncio.Task) -> None:
         await self.httpx_client.aclose()
@@ -173,11 +175,17 @@ class Bot:
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
                     )
+                    self.yaml_messages[sender_id] = result[0]
+                    return
                 except Exception as e:
                     logger.error(e)
             n = self.gpt_prog.match(content_body)
+            confirm = self.confirm_prog.match(content_body)
             if n:
-                data = content_body.replace("!deploy","")
+                if confirm:
+                    data = self.yaml_messages[sender_id]
+                else:
+                    data = content_body.replace("!deploy","")
                 user_api_key = await api_key(event.sender, self.httpx_client)
                 print(user_api_key)
                 workflow = await create_workflow(self.superagent_url, user_api_key[0], self.httpx_client)
