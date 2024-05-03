@@ -180,22 +180,22 @@ class Bot:
                 data = content_body.replace("!deploy","")
                 user_api_key = await api_key(event.sender, self.httpx_client)
                 workflow = await create_workflow(self.superagent_url, user_api_key[0], self.httpx_client)
-                if workflow == "error":
+                if workflow[0] == False:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message="Error!",
+                        reply_message=f"Error! {workflow[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
                     )
                     return
                 update_yaml = await update_yaml(self.superagent_url, user_api_key[0], workflow, data, self.httpx_client)
-                if not update_yaml:
+                if not update_yaml[0]:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message="Error!",
+                        reply_message=f"Error! {update_yaml[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
@@ -204,6 +204,17 @@ class Bot:
 
                 deploy_workflow = await deploy_bot(user_api_key[1], user_api_key[0], workflow, self.httpx_client)
                 logger.info(deploy_workflow)
+                if deploy_workflow[0] == False:
+                    await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message=f"Error! {deploy_workflow[1]}",
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id
+                    )
+                    return
+
                 await send_room_message(
                         self.client,
                         room_id,

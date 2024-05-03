@@ -90,7 +90,7 @@ async def create_workflow(superagent_url: str,api_key: str,session: httpx.AsyncC
     if response.status_code == 200:
         data = response.json()['data']['id']
         return data
-    return "error"
+    return False, response.text
 
 async def update_yaml(superagent_url: str,api_key: str,workflow_id: str, yaml: str,session: httpx.AsyncClient):
     api_url = f"{superagent_url}/api/v1/workflows/{workflow_id}/config"
@@ -106,7 +106,7 @@ async def update_yaml(superagent_url: str,api_key: str,workflow_id: str, yaml: s
     )
     if response.status_code == 200:
         return True
-    return False
+    return False, response.text
 
 async def api_key(username: str ,session: httpx.AsyncClient):
     api_url = f"https://bots.pixx.co/user/{username}"
@@ -116,7 +116,7 @@ async def api_key(username: str ,session: httpx.AsyncClient):
     )
     if response.status_code == 200:
         return response.content
-    return ""
+    return False, response.text
 
 
 async def deploy_bot(email,api_key,workflow_id,session: httpx.AsyncClient):
@@ -139,7 +139,7 @@ async def deploy_bot(email,api_key,workflow_id,session: httpx.AsyncClient):
     )
     if response.status_code == 200:
         return response.content
-    return ""
+    return False, response.text
 
 
 
