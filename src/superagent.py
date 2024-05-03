@@ -115,7 +115,7 @@ async def api_key(username: str ,session: httpx.AsyncClient):
             timeout= 30
     )
     if response.status_code == 200:
-        return response.content
+        return response.json()
     return False, response.text
 
 
