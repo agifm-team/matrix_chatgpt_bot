@@ -185,7 +185,7 @@ class Bot:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message=f"Error! {workflow[1]}",
+                        reply_message=f"Create Error! {workflow[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
@@ -196,7 +196,7 @@ class Bot:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message=f"Error! {update_workflow[1]}",
+                        reply_message=f"Yaml Error! {update_workflow[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
@@ -209,7 +209,7 @@ class Bot:
                     await send_room_message(
                         self.client,
                         room_id,
-                        reply_message=f"Error! {deploy_workflow[1]}",
+                        reply_message=f"Deploy Error! {deploy_workflow[1]}",
                         sender_id=sender_id,
                         user_message=raw_user_message,
                         reply_to_event_id=reply_to_event_id
