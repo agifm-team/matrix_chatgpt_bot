@@ -11,6 +11,12 @@ async def workflow_steps(
         api_key: str,
         session: httpx.AsyncClient
 ):
+async def workflow_steps(
+        superagent_url: str,
+        workflow_id: str,
+        api_key: str,
+        session: httpx.AsyncClient
+):
     headers = {
         'Authorization': f'Bearer {api_key}',
     }
