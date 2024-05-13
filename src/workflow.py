@@ -4,13 +4,6 @@ import logging
 
 from api import send_message_as_tool
 
-
-async def workflow_steps(
-        superagent_url: str,
-        workflow_id: str,
-        api_key: str,
-        session: httpx.AsyncClient
-):
 async def workflow_steps(
         superagent_url: str,
         workflow_id: str,
@@ -61,6 +54,7 @@ async def stream_json_response_with_auth(
         async with session.post(api_url, headers=headers, json=json) as response:
             response.raise_for_status()
             async for line in response.content:
+                
                 data = line.decode('utf-8')
                 # Split the line into event and data parts
                 if data.startswith("workflow_agent_name:") or data.startswith("\nworkflow_agent_name:"):
