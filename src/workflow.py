@@ -49,22 +49,21 @@ async def stream_json_response_with_auth(
     }
     json = {"input": msg_data, "sessionId": thread_id, "enableStreaming": True, "stream_token" : True}
     prev_data = ''
-    prev_event = None
+    prev_event = list(agent.keys())[0]
     async with aiohttp.ClientSession() as session:
         async with session.post(api_url, headers=headers, json=json) as response:
             response.raise_for_status()
-            async for line in response.content:
-                
+            async for line in response.content:            
                 data = line.decode('utf-8')
                 # Split the line into event and data parts
-                if data.startswith("workflow_agent_name:") or data.startswith("\nworkflow_agent_name:"):
-                    event = data.split("name:")[1]
+                if data.startswith("workflow_agent_name:"):
+                    event = data.split("name:")[1][:-1]
                     if prev_event != event:
-                        prev_event = event
                         await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+                        prev_event = event
                         prev_data = ''
                 else:
-                    prev_data += line
+                    prev_data += data
 
     # Print the complete message for the last event
     if prev_event is not None:
