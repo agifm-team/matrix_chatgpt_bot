@@ -167,15 +167,15 @@ class Bot:
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
         tagged = False
-        # prevent command trigger loop
-        if event.formatted_body:
-            if self.bot_username in event.formatted_body or bot_user in raw_user_message:
-                tagged = True
+        
+        if bot_user in raw_user_message:
+            tagged = True
         if thread_id:
             thread_event_id = thread_id
         else:
             thread_event_id = reply_to_event_id
         dm_tag = room.member_count == 2
+        # prevent command trigger loop
         if self.user_id != event.sender and (tagged or dm_tag):
             if self.owner_id != sender_id and self.msg_limit[sender_id] >= 10:
                 await send_room_message(
@@ -190,8 +190,6 @@ class Bot:
                 return
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
-            content_body = content_body.replace(
-                self.bot_username_without_homeserver, '')
             try:
                 if self.workflow:
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
