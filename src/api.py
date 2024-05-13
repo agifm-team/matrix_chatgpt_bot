@@ -1,4 +1,3 @@
-import httpx
 import aiohttp
 from mautrix.client import ClientAPI
 import markdown

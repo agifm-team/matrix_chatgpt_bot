@@ -156,6 +156,7 @@ class Bot:
         raw_user_message = event.body
 
         body = event.source
+        bot_user = "@" + room.user_name(self.user_id)
 
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
@@ -168,7 +169,7 @@ class Bot:
         tagged = False
         # prevent command trigger loop
         if event.formatted_body:
-            if self.bot_username in event.formatted_body:
+            if self.bot_username in event.formatted_body or bot_user in raw_user_message:
                 tagged = True
         if thread_id:
             thread_event_id = thread_id
