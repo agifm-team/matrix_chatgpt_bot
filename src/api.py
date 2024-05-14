@@ -49,7 +49,7 @@ async def edit_message(event_id, access_token, msg, room_id):
         "body": f" * {msg}",
         "msgtype": "m.text",
         "m.new_content": {
-            "body": "bye",
+            "body": msg,
             "msgtype": "m.text",
             "format": "org.matrix.custom.html",
             "formatted_body": markdown.markdown(
