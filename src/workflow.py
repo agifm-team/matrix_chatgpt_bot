@@ -65,21 +65,21 @@ async def stream_json_response_with_auth(
                         prev_data = ''
                         access_token = None
                         lines = 0
-                        edit_message(event_id, access_token, prev_data, room_id)
+                        await edit_message(event_id, access_token, prev_data, room_id)
                 else:
                     prev_data += data
                     lines += 1
                     if access_token is None:
                             data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
-                            access_token, event_id = data
-                    elif lines == 5:
-                        edit_message(event_id, access_token, prev_data, room_id)
+                            event_id, access_token = data
+                    elif lines % 5 == 0:
+                        await edit_message(event_id, access_token, prev_data, room_id)
                     
 
     # Print the complete message for the last event
     if prev_event is not None:
         logging.info(f'Event: {prev_event}, Data: {prev_data}')
-        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+        await edit_message(event_id, access_token, prev_data, room_id)
     else:
         logging.info('Failed to fetch streaming data')
 
@@ -91,4 +91,5 @@ async def send_agent_message(agent, thread_event_id, reply_id, data, room_id, wo
         'is_falling_back': True,
         'm.in_reply_to': {'event_id': reply_id}
     }
-    await send_message_as_tool(agent, data, room_id, reply_id, thread, workflow_bot, msg_limit)
+    data = await send_message_as_tool(agent, data, room_id, reply_id, thread, workflow_bot, msg_limit)
+    return data
