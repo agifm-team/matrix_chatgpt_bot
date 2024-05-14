@@ -2,7 +2,7 @@ import httpx
 import aiohttp
 import logging
 
-from api import send_message_as_tool
+from api import edit_message, send_message_as_tool
 
 async def workflow_steps(
         superagent_url: str,
@@ -49,6 +49,8 @@ async def stream_json_response_with_auth(
     }
     json = {"input": msg_data, "sessionId": thread_id, "enableStreaming": True, "stream_token" : True}
     prev_data = ''
+    access_token = None
+    lines = 0
     prev_event = list(agent.keys())[0]
     async with aiohttp.ClientSession() as session:
         async with session.post(api_url, headers=headers, json=json) as response:
@@ -59,11 +61,20 @@ async def stream_json_response_with_auth(
                 if data.startswith("workflow_agent_name:"):
                     event = data.split("name:")[1][:-1]
                     if prev_event != event:
-                        await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
                         prev_event = event
                         prev_data = ''
+                        access_token = None
+                        lines = 0
+                        edit_message(event_id, access_token, prev_data, room_id)
                 else:
                     prev_data += data
+                    lines += 1
+                    if access_token is None:
+                            data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+                            access_token, event_id = data
+                    elif lines == 5:
+                        edit_message(event_id, access_token, prev_data, room_id)
+                    
 
     # Print the complete message for the last event
     if prev_event is not None:
