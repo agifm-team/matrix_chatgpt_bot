@@ -159,7 +159,10 @@ class Bot:
         if room.user_name(self.user_id) is not None:
             bot_user = "@" + room.user_name(self.user_id)
         else:
-            bot_user = await self.client.get_displayname()
+            bot_user = await self.client.get_displayname().displayname
+        
+        if bot_user is None:
+            bot_user = '@`````'
 
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
