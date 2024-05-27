@@ -23,9 +23,10 @@ from nio import (
     MatrixRoom,
     MegolmEvent,
     RoomMessageText,
-    ToDeviceError,
+    ToDeviceError
 )
 from nio.store.database import SqliteStore
+from nio.responses import ProfileGetDisplayNameError
 from api import invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
@@ -159,11 +160,12 @@ class Bot:
         if room.user_name(self.user_id) is not None:
             bot_user = "@" + room.user_name(self.user_id)
         else:
-            bot_user = await self.client.get_displayname().displayname
+            bot_user_data = await self.client.get_displayname()
+            if bot_user_data == ProfileGetDisplayNameError:
+                bot_user = "@1\a\a"
+            else:
+                bot_user = bot_user_data.displayname
         
-        if bot_user is None:
-            bot_user = '@`````'
-
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
