@@ -10,7 +10,8 @@ async def send_message_as_tool(
     event_id,
     thread=None,
     workflow_bot=None,
-    msg_limit=0
+    msg_limit=0,
+    session_id=None
 ):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://bots.pixx.co/agents/{tool_id}") as result:
@@ -30,7 +31,8 @@ async def send_message_as_tool(
         "message_limit": {
             "workflow_bot": workflow_bot,
             "limit": msg_limit,
-        }
+        },
+        "session_id": session_id
 
     }
     if thread is None:
@@ -44,7 +46,7 @@ async def send_message_as_tool(
     return event_id, access_token
 
 
-async def edit_message(event_id, access_token, msg, room_id):
+async def edit_message(event_id, access_token, msg, room_id, workflow_bot, msg_limit, session_id):
     content = {
         "body": f" * {msg}",
         "msgtype": "m.text",
@@ -57,6 +59,11 @@ async def edit_message(event_id, access_token, msg, room_id):
                 extensions=["nl2br", "tables", "fenced_code"]
             )
         },
+        "message_limit": {
+        "workflow_bot": workflow_bot,
+        "limit": msg_limit,
+        },
+        "session_id": session_id,
         "format": "org.matrix.custom.html",
         "formatted_body": f" * {msg}",
         "m.relates_to": {
