@@ -169,6 +169,9 @@ class Bot:
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
+                thread_event_id = thread_id
+            else:
+                thread_event_id = reply_to_event_id
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
@@ -178,10 +181,7 @@ class Bot:
         
         if bot_user in raw_user_message:
             tagged = True
-        if thread_id:
-            thread_event_id = thread_id
-        else:
-            thread_event_id = reply_to_event_id
+
         dm_tag = room.member_count == 2
         # prevent command trigger loop
         if self.user_id != event.sender and (tagged or dm_tag):
@@ -192,6 +192,7 @@ class Bot:
                     reply_message="10 Messages Limit Exceeded!",
                     sender_id=sender_id,
                     user_message=raw_user_message,
+                    thread_id=thread_id,
                     reply_to_event_id=reply_to_event_id,
                     msg_limit=self.msg_limit[sender_id],
                 )
