@@ -170,8 +170,8 @@ class Bot:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
                 thread_event_id = thread_id
-            else:
-                thread_event_id = reply_to_event_id
+        if thread_id == None:
+            thread_event_id = reply_to_event_id
         # print info to console
         logger.info(
             f"Message received in room {room.display_name}\n"
