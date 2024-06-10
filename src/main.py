@@ -38,6 +38,7 @@ async def main():
             owner_id=config.get("owner_id"),
             id=config.get("ID"),
             type=config.get("TYPE"),
+            streaming=config.get("STREAMING")
         )
         if (
             config.get("import_keys_path")
@@ -58,7 +59,8 @@ async def main():
             api_key=os.environ.get("API_KEY"),
             owner_id=os.environ.get("OWNER_ID"),
             id=os.environ.get("ID"),
-            type=os.environ.get("TYPE")
+            type=os.environ.get("TYPE"),
+            streaming=os.environ.get("STREAMING")
         )
         if (
             os.environ.get("IMPORT_KEYS_PATH")

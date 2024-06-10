@@ -52,6 +52,7 @@ class Bot:
         api_key: str,
         owner_id: str,
         type: str,
+        streaming: bool,
         password: Union[str, None] = None,
         device_id: str = "MatrixChatGPTBot",
         import_keys_path: Optional[str] = None,
@@ -69,6 +70,7 @@ class Bot:
         self.msg_limit = DefaultDict()
 
         self.workflow = False
+        self.streaming = streaming
 
         if type == "WORKFLOW":
             self.workflow = True
