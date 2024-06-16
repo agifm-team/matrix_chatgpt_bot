@@ -1,6 +1,7 @@
 import asyncio
 import re
 import sys
+import time
 import traceback
 from typing import Union, Optional
 import urllib.parse
@@ -94,6 +95,8 @@ class Bot:
         self.import_keys_password: str = import_keys_password
 
         self.timeout: float = timeout or 120.0
+        self.time_loop = 0
+        self.last_message = time.time()
 
         self.base_path = "/app/keys"
 
@@ -139,10 +142,25 @@ class Bot:
         logger.info("Bot closed!")
 
 
-    async def periodic_task(self,interval=None):
+    async def periodic_task(self):
         # while self.scheduler:
         #     await asyncio.sleep(interval)
-        self.msg_limit = DefaultDict()
+        idle_time = time.time() - self.last_message 
+        if self.time_loop == 4:
+            if idle_time >= 86400:
+                await self.httpx_client.aclose()
+                await self.client.close()
+                self.scheduler = False
+            else:
+                self.time_loop == 0
+        else:
+            self.time_loop += 1
+            self.msg_limit = DefaultDict()
+        
+    async def allow_message(self, sender_id):
+        if self.msg_limit[sender_id] < 10:
+            return True
+        
 
     # message_callback RoomMessageText event
     async def message_callback(self, room: MatrixRoom, event: RoomMessageText) -> None:
@@ -186,12 +204,12 @@ class Bot:
 
         dm_tag = room.member_count == 2
         # prevent command trigger loop
-        if self.user_id != event.sender and (tagged or dm_tag):
-            if self.owner_id != sender_id and self.msg_limit[sender_id] >= 10:
+        if self.user_id != event.sender and (tagged or dm_tag) :
+            if self.owner_id != sender_id and self.allow_message(sender_id):
                 await send_room_message(
                     self.client,
                     room_id,
-                    reply_message="10 Messages Limit Exceeded!",
+                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {self.bot_username} to use your api key set in superagent.",
                     sender_id=sender_id,
                     user_message=raw_user_message,
                     thread_id=thread_id,
