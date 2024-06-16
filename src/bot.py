@@ -1,5 +1,6 @@
 import asyncio
 import re
+import sqlite3
 import sys
 import time
 import traceback
@@ -69,6 +70,7 @@ class Bot:
             sys.exit(1)
         self.scheduler = True
         self.msg_limit = DefaultDict()
+        self.bot_db = sqlite3.connect("bot.db")
 
         self.workflow = False
         self.streaming = streaming
@@ -159,7 +161,11 @@ class Bot:
         
     async def allow_message(self, sender_id):
         if self.msg_limit[sender_id] < 10:
-            return True
+            return True, None
+        check_user = self.bot_db.execute(f"SELECT email FROM bot WHERE userId='{sender_id}'")
+        if len(check_user.fetchall()) == 1 :
+            return True, check_user[0][0]
+        return False, None
         
 
     # message_callback RoomMessageText event
@@ -205,7 +211,7 @@ class Bot:
         dm_tag = room.member_count == 2
         # prevent command trigger loop
         if self.user_id != event.sender and (tagged or dm_tag) :
-            if self.owner_id != sender_id and self.allow_message(sender_id):
+            if self.owner_id != sender_id and not self.allow_message(sender_id):
                 await send_room_message(
                     self.client,
                     room_id,
