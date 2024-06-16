@@ -211,7 +211,7 @@ class Bot:
         dm_tag = room.member_count == 2
         # prevent command trigger loop
         if self.user_id != event.sender and (tagged or dm_tag) :
-            if self.owner_id != sender_id and not self.allow_message(sender_id):
+            if self.owner_id != sender_id and not self.allow_message(sender_id)[0]:
                 await send_room_message(
                     self.client,
                     room_id,
