@@ -210,7 +210,7 @@ class Bot:
 
         if bot_user in raw_user_message:
             tagged = True
-        allow_message = self.allow_message(sender_id)
+        allow_message = await self.allow_message(sender_id)
 
         dm_tag = room.member_count == 2
         # prevent command trigger loop
