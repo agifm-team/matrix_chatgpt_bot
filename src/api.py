@@ -90,3 +90,9 @@ async def enable_api(conn, userId, session):
     except Exception as e:
         return False
     return True
+
+async def intro_message(agent_id, session):
+    result = await session.post(f"https://api.pixx.co/api/v1/bots/{agent_id}/intro")
+    if result.status_code == 200:
+        return result.json()["data"]
+    return ""

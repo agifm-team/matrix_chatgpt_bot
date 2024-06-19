@@ -70,7 +70,7 @@ async def main():
             need_import_keys = True
 
     if not os.path.exists("/app/keys/bot.db"):
-        conn = sqlite3.connect("bot.db")
+        conn = sqlite3.connect("/app/keys/bot.db")
         create_table = ''' CREATE TABLE bot
          (userId TEXT  PRIMARY KEY     NOT NULL,
          email            TEXT     NOT NULL

@@ -29,7 +29,7 @@ from nio import (
 )
 from nio.store.database import SqliteStore
 from nio.responses import ProfileGetDisplayNameError
-from api import enable_api, invite_bot_to_room, send_message_as_tool
+from api import enable_api, intro_message, invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
 from send_message import send_room_message
@@ -72,7 +72,7 @@ class Bot:
             sys.exit(1)
         self.scheduler = True
         self.msg_limit = DefaultDict()
-        self.bot_db = sqlite3.connect("bot.db")
+        self.bot_db = sqlite3.connect("/app/keys/bot.db")
 
         self.workflow = False
         self.streaming = streaming
@@ -324,7 +324,15 @@ class Bot:
         # Attempt to join 3 times before giving up
         for attempt in range(3):
             result = await self.client.join(room.room_id)
-            if self.workflow:
+            if not self.workflow:
+                intro = intro_message(self.agent_id, self.httpx_client)
+                await send_room_message(
+                        self.client,
+                        room.room_id,
+                        reply_message=intro,
+                    )
+                return
+            if self.workflow and self.streaming:
                 get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                 for i in get_steps.values():
                     bot_username = await invite_bot_to_room(i, self.httpx_client)
