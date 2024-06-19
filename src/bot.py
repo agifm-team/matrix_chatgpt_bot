@@ -325,7 +325,7 @@ class Bot:
         for attempt in range(3):
             result = await self.client.join(room.room_id)
             if not self.workflow:
-                intro = intro_message(self.agent_id, self.httpx_client)
+                intro = await intro_message(self.agent_id, self.httpx_client)
                 await send_room_message(
                         self.client,
                         room.room_id,
