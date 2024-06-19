@@ -82,3 +82,11 @@ async def invite_bot_to_room(tool_id, session):
     if not result.json():
         return None
     return result.json()["bot_username"]
+
+async def enable_api(conn, userId, session):
+    try:
+        email_id = await session.get(f"https://bots.pixx.co/user/{userId}")
+        conn.execute(f'''INSERT INTO bot VALUES ({userId}, {email_id})''')
+    except Exception as e:
+        return False
+    return True

@@ -29,20 +29,22 @@ from nio import (
 )
 from nio.store.database import SqliteStore
 from nio.responses import ProfileGetDisplayNameError
-from api import invite_bot_to_room, send_message_as_tool
+from api import enable_api, invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
 from send_message import send_room_message
 from superagent import get_agents, get_tools, superagent_invoke
-from workflow import stream_json_response_with_auth, workflow_steps
+from workflow import stream_json_response_with_auth, workflow_invoke, workflow_steps
 
 logger = getlogger()
 GENERAL_ERROR_MESSAGE = "Something went wrong, please try again or contact admin."
 INVALID_NUMBER_OF_PARAMETERS_MESSAGE = "Invalid number of parameters"
 
+
 class DefaultDict(dict):
     def __missing__(self, key):
         return 0
+
 
 class Bot:
     def __init__(
@@ -135,6 +137,7 @@ class Bot:
 
         # regular expression to match keyword commands
         self.help_prog = re.compile(r"^\s*!help\s*.*$")
+        self.enable_prog = re.compile(r"\s*!enable\s+(.+)$")
 
     async def close(self, task: asyncio.Task) -> None:
         await self.httpx_client.aclose()
@@ -143,11 +146,10 @@ class Bot:
         task.cancel()
         logger.info("Bot closed!")
 
-
     async def periodic_task(self):
         # while self.scheduler:
         #     await asyncio.sleep(interval)
-        idle_time = time.time() - self.last_message 
+        idle_time = time.time() - self.last_message
         if self.time_loop == 4:
             if idle_time >= 86400:
                 await self.httpx_client.aclose()
@@ -158,17 +160,18 @@ class Bot:
         else:
             self.time_loop += 1
             self.msg_limit = DefaultDict()
-        
+
     async def allow_message(self, sender_id):
         if self.msg_limit[sender_id] < 10:
             return True, None
-        check_user = self.bot_db.execute(f"SELECT email FROM bot WHERE userId='{sender_id}'")
-        if len(check_user.fetchall()) == 1 :
+        check_user = self.bot_db.execute(
+            f"SELECT email FROM bot WHERE userId='{sender_id}'")
+        if len(check_user.fetchall()) == 1:
             return True, check_user[0][0]
         return False, None
-        
 
     # message_callback RoomMessageText event
+
     async def message_callback(self, room: MatrixRoom, event: RoomMessageText) -> None:
         room_id = room.room_id
 
@@ -191,7 +194,7 @@ class Bot:
                 bot_user = "@1\a\a"
             else:
                 bot_user = bot_user_data.displayname
-        
+
         if "m.relates_to" in body["content"]:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
@@ -204,14 +207,15 @@ class Bot:
             f"{room.user_name(event.sender)} | {raw_user_message}"
         )
         tagged = False
-        
+
         if bot_user in raw_user_message:
             tagged = True
+        allow_message = self.allow_message(sender_id)
 
         dm_tag = room.member_count == 2
         # prevent command trigger loop
-        if self.user_id != event.sender and (tagged or dm_tag) :
-            if self.owner_id != sender_id and not self.allow_message(sender_id)[0]:
+        if self.user_id != event.sender and (tagged or dm_tag):
+            if self.owner_id != sender_id and not allow_message[0]:
                 await send_room_message(
                     self.client,
                     room_id,
@@ -225,13 +229,45 @@ class Bot:
                 return
             # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
+            enable_command = self.enable_prog.match(content_body)
+            if enable_command:
+                api_req = enable_api(self.bot_db, sender_id, self.httpx_client)
+                if api_req:
+                    await send_room_message(
+                        self.client,
+                        room_id,
+                        reply_message="api enabled successfully",
+                        sender_id=sender_id,
+                        user_message=raw_user_message,
+                        reply_to_event_id=reply_to_event_id,
+                        thread_id=thread_id,
+                        msg_limit=self.msg_limit[sender_id],
+                    )
+                return
             try:
                 if self.workflow:
-                    get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
-                    self.msg_limit[sender_id] += len(get_steps)
-                    await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, self.msg_limit[sender_id])
-                    return
+                    if self.streaming:
+                        get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
+                        self.msg_limit[sender_id] += len(get_steps)
+                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, self.msg_limit[sender_id])
+                        return
+                    else:
+                        userEmail = allow_message[1]
+                        exec_workflow = workflow_invoke(
+                            api_url, content_body, self.api_key, self.httpx_client, thread_event_id, userEmail)
+                        self.msg_limit[sender_id] += 1
+                        await send_room_message(
+                            self.client,
+                            room_id,
+                            reply_message=exec_workflow,
+                            sender_id=sender_id,
+                            user_message=raw_user_message,
+                            reply_to_event_id=reply_to_event_id,
+                            thread_id=thread_id,
+                            msg_limit=self.msg_limit[sender_id],
+                        )
+                        return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
                 if result[1] != []:
                     get_called_agents = await get_agents(self.superagent_url, self.agent_id, self.api_key, self.httpx_client)

@@ -4,6 +4,7 @@ import logging
 
 from api import edit_message, send_message_as_tool
 
+
 async def workflow_steps(
         superagent_url: str,
         workflow_id: str,
@@ -30,8 +31,14 @@ async def workflow_steps(
         return result
     return response.json()
 
+
 async def workflow_invoke(
-    superagent_url: str,workflow_id: str, prompt: str, api_key:str, session: httpx.AsyncClient, sessionId: str=None,headers: dict = None
+    superagent_url: str,
+    prompt: str,
+    api_key: str,
+    session: httpx.AsyncClient,
+    sessionId: str,
+    userEmail: str = None,
 ) -> str:
     """
     Sends a query to the Superagent API and returns the response.
@@ -47,22 +54,25 @@ async def workflow_invoke(
         str: The response from the API.
     """
     headers = {
-            'Authorization': f'Bearer {api_key}',
-        }
-    api_url = f"{superagent_url}/api/v1/workflows/{workflow_id}/invoke"
+        'Authorization': f'Bearer {api_key}',
+    }
+    json_body = {
+        "input": prompt,
+        "sessionId": sessionId,
+        "enableStreaming": False,
+    }
+    if userEmail:
+        json_body["userEmail"] = userEmail
     response = await session.post(
-            api_url,
-            json={"input": prompt, "sessionId": sessionId , "enableStreaming": False},
-            headers=headers,
-            timeout= 30,
-        )
-    result = {}
+        superagent_url,
+        json=json_body,
+        headers=headers,
+        timeout=30,
+    )
     if response.status_code == 200:
-        data  = response.json()['data']
-        for i in enumerate(data['steps']):
-            result[i[0]] = i[1]['output']
-        return result
-    return {}
+        data = response.json()['data']
+        return data['output']
+    return ""
 
 
 async def stream_json_response_with_auth(
@@ -75,13 +85,17 @@ async def stream_json_response_with_auth(
     room_id,
     session: httpx.AsyncClient,
     workflow_bot=None,
+    user_email=None,
     msg_limit=0,
 ):
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json'
     }
-    json = {"input": msg_data, "sessionId": thread_id, "enableStreaming": True, "stream_token" : True}
+    json = {"input": msg_data, "sessionId": thread_id,
+            "enableStreaming": True, "stream_token": True}
+    if user_email:
+        json["userEmail"] = user_email
     prev_data = ''
     access_token = None
     lines = 0
@@ -89,13 +103,13 @@ async def stream_json_response_with_auth(
     async with aiohttp.ClientSession() as session:
         async with session.post(api_url, headers=headers, json=json) as response:
             response.raise_for_status()
-            async for line in response.content:            
+            async for line in response.content:
                 data = line.decode('utf-8')
                 # Split the line into event and data parts
                 if data.startswith("workflow_agent_name:"):
                     event = data.split("name:")[1][:-1]
                     if prev_event != event:
-                        prev_event = event            
+                        prev_event = event
                         access_token = None
                         lines = 0
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
@@ -104,11 +118,10 @@ async def stream_json_response_with_auth(
                     prev_data += data
                     lines += 1
                     if access_token is None:
-                            data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
-                            event_id, access_token = data
+                        data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+                        event_id, access_token = data
                     elif lines % 5 == 0:
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
-                    
 
     # Print the complete message for the last event
     if prev_event is not None:
@@ -125,5 +138,5 @@ async def send_agent_message(agent, thread_event_id, reply_id, data, room_id, wo
         'is_falling_back': True,
         'm.in_reply_to': {'event_id': reply_id}
     }
-    data = await send_message_as_tool(agent, data, room_id, reply_id, thread, workflow_bot, msg_limit,session_id=thread_event_id)
+    data = await send_message_as_tool(agent, data, room_id, reply_id, thread, workflow_bot, msg_limit, session_id=thread_event_id)
     return data
