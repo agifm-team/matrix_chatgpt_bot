@@ -71,8 +71,9 @@ async def workflow_invoke(
     )
     if response.status_code == 200:
         data = response.json()['data']
+        logging.info(data)
         return data['output']
-    return ""
+    return "Error!"
 
 
 async def stream_json_response_with_auth(

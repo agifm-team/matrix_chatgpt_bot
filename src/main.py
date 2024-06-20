@@ -69,14 +69,6 @@ async def main():
         ):
             need_import_keys = True
 
-    if not os.path.exists("/app/keys/bot.db"):
-        conn = sqlite3.connect("/app/keys/bot.db")
-        create_table = ''' CREATE TABLE bot
-         (userId TEXT  PRIMARY KEY     NOT NULL,
-         email            TEXT     NOT NULL
-        );
-         '''
-        conn.execute(create_table)
     await matrix_bot.login()
     if need_import_keys:
         logger.info("start import_keys process, this may take a while...")

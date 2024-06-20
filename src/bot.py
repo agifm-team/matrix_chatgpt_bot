@@ -73,6 +73,12 @@ class Bot:
         self.scheduler = True
         self.msg_limit = DefaultDict()
         self.bot_db = sqlite3.connect("/app/keys/bot.db")
+        create_table = '''CREATE TABLE IF NOT EXISTS bot
+         (userId TEXT  PRIMARY KEY     NOT NULL,
+         email            TEXT     NOT NULL
+        );
+         '''
+        self.bot_db.execute(create_table)
 
         self.workflow = False
         self.streaming = streaming
@@ -326,12 +332,12 @@ class Bot:
             result = await self.client.join(room.room_id)
             if not self.workflow:
                 intro = await intro_message(self.agent_id, self.httpx_client)
-                await send_room_message(
-                        self.client,
-                        room.room_id,
-                        reply_message=intro,
-                    )
-                return
+                if intro:
+                    await send_room_message(
+                            self.client,
+                            room.room_id,
+                            reply_message=intro,
+                        )
             if self.workflow and self.streaming:
                 get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                 for i in get_steps.values():
