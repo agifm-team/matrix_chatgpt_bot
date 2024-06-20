@@ -221,23 +221,10 @@ class Bot:
         dm_tag = room.member_count == 2
         # prevent command trigger loop
         if self.user_id != event.sender and (tagged or dm_tag):
-            if self.owner_id != sender_id and not allow_message[0]:
-                await send_room_message(
-                    self.client,
-                    room_id,
-                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {self.bot_username} to use your api key set in superagent.",
-                    sender_id=sender_id,
-                    user_message=raw_user_message,
-                    thread_id=thread_id,
-                    reply_to_event_id=reply_to_event_id,
-                    msg_limit=self.msg_limit[sender_id],
-                )
-                return
-            # remove newline character from event.body
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
             enable_command = self.enable_prog.match(content_body)
             if enable_command:
-                api_req = enable_api(self.bot_db, sender_id, self.httpx_client)
+                api_req = await enable_api(self.bot_db, sender_id, self.httpx_client)
                 if api_req:
                     await send_room_message(
                         self.client,
@@ -250,16 +237,29 @@ class Bot:
                         msg_limit=self.msg_limit[sender_id],
                     )
                 return
+            if self.owner_id != sender_id and not allow_message[0]:
+                await send_room_message(
+                    self.client,
+                    room_id,
+                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {self.bot_username} to use your api key set in superagent.",
+                    sender_id=sender_id,
+                    user_message=raw_user_message,
+                    thread_id=thread_id,
+                    reply_to_event_id=reply_to_event_id,
+                    msg_limit=self.msg_limit[sender_id],
+                )
+                return
             try:
+                userEmail = allow_message[1]
                 if self.workflow:
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
+                    
                     if self.streaming:
                         get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                         self.msg_limit[sender_id] += len(get_steps)
-                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, self.msg_limit[sender_id])
+                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail,self.msg_limit[sender_id])
                         return
                     else:
-                        userEmail = allow_message[1]
                         exec_workflow = workflow_invoke(
                             api_url, content_body, self.api_key, self.httpx_client, thread_event_id, userEmail)
                         self.msg_limit[sender_id] += 1
@@ -272,6 +272,7 @@ class Bot:
                             reply_to_event_id=reply_to_event_id,
                             thread_id=thread_id,
                             msg_limit=self.msg_limit[sender_id],
+                            personal_api=userEmail
                         )
                         return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)

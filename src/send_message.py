@@ -14,6 +14,7 @@ async def send_room_message(
     reply_to_event_id: str = "",
     thread_id = None,
     msg_limit=0,
+    personal_api=None
 ) -> None:
     if reply_to_event_id == "":
         content = {
@@ -65,6 +66,8 @@ async def send_room_message(
             'is_falling_back': True, 
             'm.in_reply_to': {'event_id': reply_to_event_id}
         }
+    if personal_api:
+        content["api"] = True
     try:
         await client.room_send(
             room_id,
