@@ -171,8 +171,9 @@ class Bot:
         if self.msg_limit[sender_id] < 10:
             return True, None
         check_user = self.bot_db.execute(
-            f"SELECT email FROM bot WHERE userId='{sender_id}'")
-        if len(check_user.fetchall()) == 1:
+            f"SELECT email FROM bot WHERE userId='{sender_id}'").fetchall()
+        logger.info(f"check_user: {check_user}")
+        if len(check_user) == 1:
             return True, check_user[0][0]
         return False, None
 

@@ -1,9 +1,10 @@
 import httpx
 import aiohttp
-import logging
 
+from log import getlogger
 from api import edit_message, send_message_as_tool
 
+logger = getlogger()
 
 async def workflow_steps(
         superagent_url: str,
@@ -63,6 +64,7 @@ async def workflow_invoke(
     }
     if userEmail:
         json_body["userEmail"] = userEmail
+    logger.info(json_body)
     response = await session.post(
         superagent_url,
         json=json_body,
@@ -71,7 +73,7 @@ async def workflow_invoke(
     )
     if response.status_code == 200:
         data = response.json()['data']
-        logging.info(data)
+        logger.info(f"json body: {json_body}")
         return data['output']
     return "Error!"
 
@@ -97,6 +99,7 @@ async def stream_json_response_with_auth(
             "enableStreaming": True, "stream_token": True}
     if user_email:
         json["userEmail"] = user_email
+    logger.info(f"stream json : {json}")
     prev_data = ''
     access_token = None
     lines = 0
@@ -126,10 +129,10 @@ async def stream_json_response_with_auth(
 
     # Print the complete message for the last event
     if prev_event is not None:
-        logging.info(f'Event: {prev_event}, Data: {prev_data}')
+        logger.info(f'Event: {prev_event}, Data: {prev_data}')
         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
     else:
-        logging.info('Failed to fetch streaming data')
+        logger.info('Failed to fetch streaming data')
 
 
 async def send_agent_message(agent, thread_event_id, reply_id, data, room_id, workflow_bot=None, msg_limit=0):
