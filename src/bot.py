@@ -254,11 +254,11 @@ class Bot:
                 userEmail = allow_message[1]
                 if self.workflow:
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
-                    
+
                     if self.streaming == True:
                         get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                         self.msg_limit[sender_id] += len(get_steps)
-                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail,self.msg_limit[sender_id])
+                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id])
                         return
                     else:
                         exec_workflow = await workflow_invoke(
@@ -332,14 +332,6 @@ class Bot:
         # Attempt to join 3 times before giving up
         for attempt in range(3):
             result = await self.client.join(room.room_id)
-            if not self.workflow:
-                intro = await intro_message(self.agent_id, self.httpx_client)
-                if intro:
-                    await send_room_message(
-                            self.client,
-                            room.room_id,
-                            reply_message=intro,
-                        )
             if self.workflow and self.streaming:
                 get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                 for i in get_steps.values():
@@ -364,6 +356,14 @@ class Bot:
 
         # Successfully joined room
         logger.info(f"Joined {room.room_id}")
+        if not self.workflow:
+            intro = await intro_message(self.agent_id, self.httpx_client)
+            if intro:
+                await send_room_message(
+                    self.client,
+                    room.room_id,
+                    reply_message=intro,
+                )
 
     # to_device_callback event
     async def to_device_callback(self, event: KeyVerificationEvent) -> None:
