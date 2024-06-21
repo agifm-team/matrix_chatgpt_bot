@@ -168,13 +168,13 @@ class Bot:
             self.msg_limit = DefaultDict()
 
     async def allow_message(self, sender_id):
-        if self.msg_limit[sender_id] < 10:
-            return True, None
         check_user = self.bot_db.execute(
-            f"SELECT email FROM bot WHERE userId='{sender_id}'").fetchall()
+            f"SELECT email FROM bot WHERE userId='{sender_id}'").fetchone()
         logger.info(f"check_user: {check_user}")
-        if len(check_user) == 1:
-            return True, check_user[0][0]
+        if check_user:
+            return True, check_user[0]
+        if self.msg_limit[sender_id] <= 10:
+            return True, None
         return False, None
 
     # message_callback RoomMessageText event
@@ -255,13 +255,13 @@ class Bot:
                 if self.workflow:
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
                     
-                    if self.streaming:
+                    if self.streaming == True:
                         get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                         self.msg_limit[sender_id] += len(get_steps)
                         await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail,self.msg_limit[sender_id])
                         return
                     else:
-                        exec_workflow = workflow_invoke(
+                        exec_workflow = await workflow_invoke(
                             api_url, content_body, self.api_key, self.httpx_client, thread_event_id, userEmail)
                         self.msg_limit[sender_id] += 1
                         await send_room_message(
