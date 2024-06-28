@@ -341,6 +341,7 @@ class Bot:
         logger.info(f"Joined {room.room_id}")
         if not self.workflow:
             intro = await intro_message(self.agent_id, self.httpx_client)
+            logger.info(f"intro: {intro}")
             if intro:
                 await send_text_message(
                     self.client,

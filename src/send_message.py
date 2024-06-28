@@ -80,8 +80,11 @@ async def send_room_message(
         logger.error(e)
 
 async def send_text_message(client, room_id, message):
-        await client.room_send(
-            room_id=room_id,
-            message_type="m.room.message",
-            content={"msgtype": "m.text", "body": message},
-        )
+        try:
+            await client.room_send(
+                room_id=room_id,
+                message_type="m.room.message",
+                content={"msgtype": "m.text", "body": message},
+            )
+        except Exception as e:
+            logger.error(f"intro error{e}")
