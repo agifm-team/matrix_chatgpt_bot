@@ -32,9 +32,9 @@ from nio.responses import ProfileGetDisplayNameError
 from api import enable_api, intro_message, invite_bot_to_room, send_message_as_tool
 
 from log import getlogger
-from send_message import send_room_message
+from send_message import send_room_message, send_text_message
 from superagent import get_agents, get_tools, superagent_invoke
-from workflow import stream_json_response_with_auth, workflow_invoke, workflow_steps
+from workflow import stream_workflow, workflow_invoke, workflow_steps
 
 logger = getlogger()
 GENERAL_ERROR_MESSAGE = "Something went wrong, please try again or contact admin."
@@ -251,6 +251,7 @@ class Bot:
                 )
                 return
             try:
+                await self.client.room_typing(room_id, typing_state=True)
                 userEmail = allow_message[1]
                 if self.workflow:
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
@@ -258,7 +259,7 @@ class Bot:
                     if self.streaming == True:
                         get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                         self.msg_limit[sender_id] += len(get_steps)
-                        await stream_json_response_with_auth(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id])
+                        await stream_workflow(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id])
                         return
                     else:
                         exec_workflow = await workflow_invoke(
@@ -277,25 +278,6 @@ class Bot:
                         )
                         return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
-                if result[1] != []:
-                    get_called_agents = await get_agents(self.superagent_url, self.agent_id, self.api_key, self.httpx_client)
-                    if get_called_agents != {}:
-                        for i in result[1]:
-                            tool_name = i[0]['tool']
-                            tool_input = i[0]['tool_input']['input']
-                            tool_id = get_called_agents[tool_name]
-                            if thread_id:
-                                thread_event_id = thread_id
-                            else:
-                                thread_event_id = reply_to_event_id
-                            thread = {
-                                'rel_type': 'm.thread',
-                                'event_id': thread_event_id,
-                                'is_falling_back': True,
-                                'm.in_reply_to': {'event_id': reply_to_event_id}
-                            }
-                            self.msg_limit[sender_id] += 1
-                            await send_message_as_tool(tool_id, tool_input, room_id, reply_to_event_id, thread, self.user_id, self.msg_limit[sender_id])
                 self.msg_limit[sender_id] += 1
                 await send_room_message(
                     self.client,
@@ -308,6 +290,7 @@ class Bot:
                     msg_limit=self.msg_limit[sender_id],
                 )
             except Exception as e:
+                await self.client.room_typing(room_id, typing_state=False)
                 logger.error(e)
 
     # message_callback decryption_failure event
@@ -359,10 +342,10 @@ class Bot:
         if not self.workflow:
             intro = await intro_message(self.agent_id, self.httpx_client)
             if intro:
-                await send_room_message(
+                await send_text_message(
                     self.client,
-                    room.room_id,
-                    reply_message=intro,
+                    room_id=room.room_id,
+                    message=intro,
                 )
 
     # to_device_callback event

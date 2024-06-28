@@ -78,7 +78,7 @@ async def workflow_invoke(
     return "Error!"
 
 
-async def stream_json_response_with_auth(
+async def stream_workflow(
     api_url,
     api_key,
     msg_data,
