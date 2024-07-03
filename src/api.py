@@ -90,7 +90,9 @@ async def invite_bot_to_room(tool_id, session):
 async def enable_api(conn, userId, session):
     try:
         email_id = await session.get(f"https://bots.pixx.co/user/{userId}")
-        conn.execute(f"INSERT OR REPLACE INTO bot VALUES ('{userId.text}', '{email_id}')")
+        email_id.raise_for_status()
+        email = email_id.json()["email"]
+        conn.execute(f"INSERT OR REPLACE INTO bot VALUES ('{userId}', '{email}')")
     except Exception as e:
         logger.error(f"email api: {e}")
         return False
