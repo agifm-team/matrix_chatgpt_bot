@@ -18,7 +18,7 @@ async def send_message_as_tool(
     session_id=None
 ):
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://bots.pixx.co/agents/{tool_id}") as result:
+        async with session.get(f"https://bots.spaceship.im/agents/{tool_id}") as result:
             data = await result.json()
             if not data:
                 return None
@@ -44,7 +44,7 @@ async def send_message_as_tool(
             'm.in_reply_to': {'event_id': event_id}
         }
     content["m.relates_to"] = thread
-    client = ClientAPI(base_url="https://matrix.pixx.co",
+    client = ClientAPI(base_url="https://matrix.spaceship.im",
                        token=access_token)
     event_id = await client.send_message(room_id, content)
     return event_id, access_token
@@ -75,21 +75,21 @@ async def edit_message(event_id, access_token, msg, room_id, workflow_bot, msg_l
             "rel_type": "m.replace"
         }
     }
-    client = ClientAPI(base_url="https://matrix.pixx.co",
+    client = ClientAPI(base_url="https://matrix.spaceship.im",
                        token=access_token)
     event_id = await client.send_message(room_id, content)
     return event_id
 
 
 async def invite_bot_to_room(tool_id, session):
-    result = await session.get(f"https://bots.pixx.co/agents/{tool_id}")
+    result = await session.get(f"https://bots.spaceship.im/agents/{tool_id}")
     if not result.json():
         return None
     return result.json()["bot_username"]
 
 async def enable_api(conn, userId, session):
     try:
-        email_id = await session.get(f"https://bots.pixx.co/user/{userId}")
+        email_id = await session.get(f"https://bots.spaceship.im/user/{userId}")
         email_id.raise_for_status()
         email = email_id.json()["email"]
         conn.execute(f"INSERT OR REPLACE INTO bot VALUES ('{userId}', '{email}')")
@@ -99,7 +99,7 @@ async def enable_api(conn, userId, session):
     return True
 
 async def intro_message(agent_id, session):
-    result = await session.post(f"https://api.pixx.co/api/v1/bots/{agent_id}/intro")
+    result = await session.post(f"https://api.spaceship.im/api/v1/bots/{agent_id}/intro")
     if result.status_code == 200:
         return result.json()["data"]
     return None

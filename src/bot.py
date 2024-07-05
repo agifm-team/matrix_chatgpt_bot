@@ -96,7 +96,7 @@ class Bot:
         self.owner_id: str = owner_id
         self.bot_username = urllib.parse.quote(user_id)
         self.bot_username_without_homeserver = self.user_id.replace(
-            ":pixx.co", '')
+            ":spaceship.im", '')
 
         self.superagent_url = superagent_url
         self.api_key = api_key
