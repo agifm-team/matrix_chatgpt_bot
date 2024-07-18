@@ -35,6 +35,7 @@ async def workflow_steps(
 
 async def workflow_invoke(
     superagent_url: str,
+    workflow_id: str,
     prompt: str,
     api_key: str,
     session: httpx.AsyncClient,
@@ -62,6 +63,7 @@ async def workflow_invoke(
         "sessionId": sessionId,
         "enableStreaming": False,
     }
+    api_url = f"{superagent_url}/api/v1/workflows/{workflow_id}/invoke"
     if userEmail:
         json_body["userEmail"] = userEmail
     logger.info(json_body)
@@ -81,6 +83,7 @@ async def workflow_invoke(
 async def stream_workflow(
     api_url,
     api_key,
+    workflow_id,
     msg_data,
     agent,
     thread_id,
@@ -90,6 +93,7 @@ async def stream_workflow(
     workflow_bot=None,
     user_email=None,
     msg_limit=0,
+    single_bot=False
 ):
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -97,6 +101,7 @@ async def stream_workflow(
     }
     json = {"input": msg_data, "sessionId": thread_id,
             "enableStreaming": True, "stream_token": True}
+    api_path = f"{api_url}/api/v1/workflows/{workflow_id}/invoke"
     if user_email:
         json["userEmail"] = user_email
     logger.info(f"stream json : {json}")
@@ -105,7 +110,7 @@ async def stream_workflow(
     lines = 0
     prev_event = list(agent.keys())[0]
     async with aiohttp.ClientSession() as session:
-        async with session.post(api_url, headers=headers, json=json) as response:
+        async with session.post(api_path, headers=headers, json=json) as response:
             response.raise_for_status()
             async for line in response.content:
                 data = line.decode('utf-8')
@@ -122,7 +127,10 @@ async def stream_workflow(
                     prev_data += data
                     lines += 1
                     if access_token is None:
-                        data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+                        if single_bot:
+                            data = await send_agent_message(workflow_id, thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
+                        else:
+                            data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
                         event_id, access_token = data
                     elif lines % 5 == 0:
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
