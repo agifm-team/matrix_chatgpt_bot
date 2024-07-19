@@ -242,7 +242,8 @@ class Bot:
                 await send_room_message(
                     self.client,
                     room_id,
-                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {self.bot_username} to use your api key set in superagent.",
+                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {
+                        self.bot_username} to use your api key set in superagent.",
                     sender_id=sender_id,
                     user_message=raw_user_message,
                     thread_id=thread_id,
@@ -254,18 +255,19 @@ class Bot:
                 await self.client.room_typing(room_id, typing_state=True)
                 userEmail = allow_message[1]
                 if self.workflow:
+                    get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                     if self.streaming == True:
-                        get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                         self.msg_limit[sender_id] += len(get_steps)
                         await stream_workflow(self.superagent_url, self.api_key, self.workflow_id,
-                                              content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id])
+                                              content_body, get_steps, thread_event_id, reply_to_event_id, room_id,
+                                              self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id], single_bot=False)
                         return
                     else:
-                        get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
+                        
                         self.msg_limit[sender_id] += len(get_steps)
                         await stream_workflow(self.superagent_url, self.api_key, self.workflow_id,
-                                              content_body, get_steps, thread_event_id, reply_to_event_id, 
-                                              room_id, self.httpx_client, self.user_id, userEmail, 
+                                              content_body, get_steps, thread_event_id, reply_to_event_id,
+                                              room_id, self.httpx_client, self.user_id, userEmail,
                                               self.msg_limit[sender_id], single_bot=True)
                         return
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
@@ -352,7 +354,8 @@ class Bot:
         try:
             client = self.client
             logger.debug(
-                f"Device Event of type {type(event)} received in " "to_device_cb()."
+                f"Device Event of type {
+                    type(event)} received in " "to_device_cb()."
             )
 
             if isinstance(event, KeyVerificationStart):  # first step
@@ -461,7 +464,8 @@ class Bot:
                     logger.info(estr)
                     resp = await client.confirm_short_auth_string(event.transaction_id)
                     if isinstance(resp, ToDeviceError):
-                        estr = "confirm_short_auth_string() " f"failed with {resp}"
+                        estr = "confirm_short_auth_string() " f"failed with {
+                            resp}"
                         logger.info(estr)
                 elif yn.lower() == "n":  # no, don't match, reject
                     estr = (
