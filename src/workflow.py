@@ -127,7 +127,8 @@ async def stream_workflow(
                     prev_data += data
                     lines += 1
                     if access_token is None:
-                        if single_bot:
+                        logger.info(f"single_bot: workflow invoke {single_bot}")
+                        if single_bot == True:
                             data = await send_agent_message(workflow_id, thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
                         else:
                             data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
