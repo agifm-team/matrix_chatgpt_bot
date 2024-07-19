@@ -119,10 +119,10 @@ async def stream_workflow(
                     event = data.split("name:")[1][:-1]
                     if prev_event != event:
                         prev_event = event
-                        access_token = None
                         lines = 0
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
                         prev_data = ''
+                        access_token = None
                 else:
                     prev_data += data
                     lines += 1
