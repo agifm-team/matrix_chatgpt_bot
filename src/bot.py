@@ -242,8 +242,7 @@ class Bot:
                 await send_room_message(
                     self.client,
                     room_id,
-                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {
-                        self.bot_username} to use your api key set in superagent.",
+                    reply_message=f"10 Messages Limit Exceeded!.Send !enable {self.bot_username} to use your api key set in superagent.",
                     sender_id=sender_id,
                     user_message=raw_user_message,
                     thread_id=thread_id,
