@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "multi_bot"
 
 jobs:
   build:
