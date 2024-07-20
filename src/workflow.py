@@ -123,16 +123,16 @@ async def stream_workflow(
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
                         prev_data = ''
                         access_token = None
+                elif data.startwith("event: function_call"):
+                    pass
                 else:
                     prev_data += data
                     lines += 1
                     if access_token is None:
                         logger.info(f"single_bot: workflow invoke {single_bot}")
-                        if single_bot == True:
-                            data = await send_agent_message(workflow_id, thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
-                        else:
-                            data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
-                        event_id, access_token = data
+                        msg_content = str(agent[prev_event]) + prev_data
+                        msg_data = await send_agent_message(workflow_id, thread_id, reply_id, msg_content, room_id, workflow_bot, msg_limit)
+                        event_id, access_token = msg_data
                     elif lines % 5 == 0:
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
 
