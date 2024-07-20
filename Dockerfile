@@ -1,4 +1,4 @@
-FROM python:3.11-alpine as base
+FROM python:3.12-alpine as base
 
 FROM base as pybuilder
 # RUN sed -i 's|v3\.\d*|edge|' /etc/apk/repositories
