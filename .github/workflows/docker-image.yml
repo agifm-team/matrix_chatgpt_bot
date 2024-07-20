@@ -29,4 +29,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/matrix_chatgpt_bot:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/multi_bot:latest
