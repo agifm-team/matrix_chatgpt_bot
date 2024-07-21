@@ -123,7 +123,7 @@ async def stream_workflow(
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
                         prev_data = ''
                         access_token = None
-                elif data.startwith("event: function_call"):
+                elif data.startswith("event: function_call"):
                     pass
                 else:
                     prev_data += data
