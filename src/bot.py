@@ -572,12 +572,12 @@ class Bot:
                     prompt = m.group(1)
                     try:
                         asyncio.create_task(
-                            self.gpt(
+                            self.thread_chat(
                                 room_id,
                                 reply_to_event_id,
-                                prompt,
-                                sender_id,
-                                raw_user_message,
+                                thread_root_id=reply_to_event_id,
+                                sender_id=sender_id,
+                                prompt=prompt
                             )
                         )
                     except Exception as e:
@@ -595,12 +595,12 @@ class Bot:
                     prompt = n.group(1)
                     try:
                         asyncio.create_task(
-                            self.chat(
+                            self.thread_chat(
                                 room_id,
                                 reply_to_event_id,
-                                prompt,
-                                sender_id,
-                                raw_user_message,
+                                thread_root_id=reply_to_event_id,
+                                sender_id=sender_id,
+                                prompt=prompt
                             )
                         )
                     except Exception as e:
