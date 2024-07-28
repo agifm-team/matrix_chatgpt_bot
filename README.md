@@ -55,10 +55,17 @@ pip install -r requirements.txt
   "password": "YOUR_PASSWORD",
   "device_id": "YOUR_DEVICE_ID",
   "room_id": "YOUR_ROOM_ID",
-  "openai_api_key": "YOUR_API_KEY",
-  "gpt_api_endpoint": "xxxxxxxxx"
+  "superagent_url" : "SUPERAGENT_API_URL",
+  "api_key" : "SUPERAGENT_API_KEY",
+  "owner_id" : "MATRIX_USER_ID",
+  "id" : "workflow or agent superagent id",
+  "type" : "WORKFLOW or AGENT",
+  "STREAMING" : "TRUE or FALSE"
 }
 ```
+
+*streaming env variable is used for multi or singe bot setup
+if streaming is true it uses multi_bot else single_bot
 
 4. Launch the bot:
 
@@ -69,42 +76,9 @@ python src/main.py
 ## Usage
 
 To interact with the bot, simply send a message to the bot in the Matrix room with one of the following prompts:<br>
-- `!help` help message
 
-- `!gpt` To generate a one time response:
+- `@username:spaceship.im Hi` Start a new converstaion
 
-```
-!gpt What is the meaning of life?
-```
-
-- `!chat` To chat using official api with context conversation
-
-```
-!chat Can you tell me a joke?
-```
-
-- `!lc` To chat using langchain api endpoint
-```
-!lc All the world is a stage
-```
-- `!pic` To generate an image using openai DALL·E or LocalAI
-
-```
-!pic A bridal bouquet made of succulents
-```
-- `!agent` display or set langchain agent
-```
-!agent list
-!agent use {agent_name}
-```
-- `!new + {chat}` Start a new converstaion
-
-LangChain(flowise) admin: https://github.com/hibobmaster/matrix_chatgpt_bot/wiki/Langchain-(flowise)
-
-## Image Generation
-![demo1](https://i.imgur.com/voeomsF.jpg)
-![demo2](https://i.imgur.com/BKZktWd.jpg)
-https://github.com/hibobmaster/matrix_chatgpt_bot/wiki/ <br>
 
 
 ## Thanks
