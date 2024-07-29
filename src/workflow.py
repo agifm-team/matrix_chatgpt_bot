@@ -96,7 +96,7 @@ async def stream_workflow(
         'Content-Type': 'application/json'
     }
     json = {"input": msg_data, "sessionId": thread_id,
-            "enableStreaming": True, "stream_token": True}
+            "enableStreaming": False, "stream_token": False}
     if user_email:
         json["userEmail"] = user_email
     logger.info(f"stream json : {json}")
