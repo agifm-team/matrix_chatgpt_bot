@@ -80,7 +80,7 @@ class Bot:
          '''
         self.bot_db.execute(create_table)
 
-        self.workflow = True
+        self.workflow = False
         self.streaming = streaming
 
         if type == "WORKFLOW":
@@ -257,7 +257,7 @@ class Bot:
                     api_url = f"{self.superagent_url}/api/v1/workflows/{self.workflow_id}/invoke"
                     get_steps = await workflow_steps(self.superagent_url, self.workflow_id, self.api_key, self.httpx_client)
                     self.msg_limit[sender_id] += len(get_steps)
-                    await stream_workflow(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id])
+                    await stream_workflow(api_url, self.api_key, content_body, get_steps, thread_event_id, reply_to_event_id, room_id, self.httpx_client, self.user_id, userEmail, self.msg_limit[sender_id], single_bot=not self.streaming)
                     return
 
                 result = await superagent_invoke(self.superagent_url, self.agent_id, content_body, self.api_key, self.httpx_client, thread_event_id)
