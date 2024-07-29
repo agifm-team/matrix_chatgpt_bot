@@ -80,7 +80,7 @@ class Bot:
          '''
         self.bot_db.execute(create_table)
 
-        self.workflow = False
+        self.workflow = True
         self.streaming = streaming
 
         if type == "WORKFLOW":
