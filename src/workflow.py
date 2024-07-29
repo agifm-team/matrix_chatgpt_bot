@@ -77,6 +77,7 @@ async def workflow_invoke(
         return data['output']
     return "Error!"
 
+
 async def stream_workflow(
     api_url,
     api_key,
@@ -89,7 +90,6 @@ async def stream_workflow(
     workflow_bot=None,
     user_email=None,
     msg_limit=0,
-    single_bot=False
 ):
     headers = {
         'Authorization': f'Bearer {api_key}',
