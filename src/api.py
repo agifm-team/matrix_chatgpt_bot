@@ -19,8 +19,8 @@ async def send_message_as_tool(
 ):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://bots.spaceship.im/agents/{tool_id}") as result:
-            data = await result.json()
-            if data.status_code == 200:
+            if result.status_code == 200:
+                data = await result.json()
                 access_token = data['access_token']
             else:
                 raise Exception(f"Access token missing: {tool_id}")
