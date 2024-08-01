@@ -20,10 +20,10 @@ async def send_message_as_tool(
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://bots.spaceship.im/agents/{tool_id}") as result:
             data = await result.json()
-            if not data:
-                return None
-            else:
+            if data.status_code == 200:
                 access_token = data['access_token']
+            else:
+                raise Exception(f"Access token missing: {tool_id}")
     content = {
         "body": tool_input,
         "msgtype": "m.text",
@@ -44,9 +44,12 @@ async def send_message_as_tool(
             'm.in_reply_to': {'event_id': event_id}
         }
     content["m.relates_to"] = thread
-    client = ClientAPI(base_url="https://matrix.spaceship.im",
+    try:
+        client = ClientAPI(base_url="https://matrix.spaceship.im",
                        token=access_token)
-    event_id = await client.send_message(room_id, content)
+        event_id = await client.send_message(room_id, content)
+    except Exception as e:
+        logger.error(f"sub agent bot error: {e}")
     return event_id, access_token
 
 
@@ -75,9 +78,12 @@ async def edit_message(event_id, access_token, msg, room_id, workflow_bot, msg_l
             "rel_type": "m.replace"
         }
     }
-    client = ClientAPI(base_url="https://matrix.spaceship.im",
+    try:
+        client = ClientAPI(base_url="https://matrix.spaceship.im",
                        token=access_token)
-    event_id = await client.send_message(room_id, content)
+        event_id = await client.send_message(room_id, content)
+    except Exception as e:
+        logger.error(f"edit msg sub bot error :{e}")
     return event_id
 
 

@@ -120,13 +120,13 @@ async def stream_workflow(
                         prev_data = ''
                 else:
                     prev_data += data
-                    lines += 1
+
                     if access_token is None:
                         data = await send_agent_message(agent[prev_event], thread_id, reply_id, prev_data, room_id, workflow_bot, msg_limit)
                         event_id, access_token = data
                     elif lines % 5 == 0:
                         await edit_message(event_id, access_token, prev_data, room_id, workflow_bot, msg_limit, thread_id)
-
+                    lines += 1
     # Print the complete message for the last event
     if prev_event is not None:
         logger.info(f'Event: {prev_event}, Data: {prev_data}')

@@ -206,6 +206,8 @@ class Bot:
             if body["content"]["m.relates_to"].get("rel_type") == "m.thread":
                 thread_id = body["content"]["m.relates_to"]["event_id"]
                 thread_event_id = thread_id
+                
+                
         if thread_id == None:
             thread_event_id = reply_to_event_id
         # print info to console
@@ -224,6 +226,8 @@ class Bot:
         if self.user_id != event.sender and (tagged or dm_tag):
             content_body = re.sub("\r\n|\r|\n", " ", raw_user_message)
             enable_command = self.enable_prog.match(content_body)
+            
+            # !enable enables user's api key for llm calls
             if enable_command:
                 api_req = await enable_api(self.bot_db, sender_id, self.httpx_client)
                 if api_req:
